@@ -31,7 +31,7 @@ const Farmer_Login = () => {
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
       localStorage.setItem("token", data.token); // Store token
-      navigate("/Contractfarming"); // Redirect to dashboard
+      navigate("/FarmerDashboard"); // Redirect to dashboard
     } catch (err) {
       setError(err.message);
     }

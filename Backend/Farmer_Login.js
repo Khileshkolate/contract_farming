@@ -3,10 +3,24 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import bodyParser from "body-parser";
 
+
+
+/// Initialize express app
 const app = express();
+
+// Use middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
+}));
+
+
+app.use(bodyParser.json());
 
 // MongoDB Connection
 mongoose.connect("mongodb://localhost:27017/Farmer_Login", {
@@ -16,7 +30,7 @@ mongoose.connect("mongodb://localhost:27017/Farmer_Login", {
   .then(() => console.log("MongoDB connected to 'Farmer_Login' database"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Schemas and Models
+// User Schema
 const userSchema = new mongoose.Schema({
   fName: String,
   lName: String,
@@ -24,6 +38,7 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 
+// Profile Schema
 const profileSchema = new mongoose.Schema({
   name: String,
   surname: String,
@@ -33,10 +48,52 @@ const profileSchema = new mongoose.Schema({
   image: String,
 });
 
-const User = mongoose.model("User", userSchema, "users"); // Collection name: "users"
-const Profile = mongoose.model("Profile", profileSchema, "profiles"); // Collection name: "profiles"
+// Contract Schema
+const contractSchema = new mongoose.Schema({
+  image: String,
+  title: String,
+  area: String,
+  actionText: String,
+  actionLink: String,
+});
 
-// Helper Functions
+// Land Schema
+const landSchema = new mongoose.Schema({
+  image: { type: String, required: true },
+  title: { type: String, required: true },
+  area: { type: String, required: true },
+  price: { type: String, required: true },
+  status: { 
+    type: String, 
+    enum: ['Available', 'Pre-book'], 
+    default: 'Available' 
+  },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+});
+
+
+// Models
+const User = mongoose.model("User", userSchema, "users"); 
+const Profile = mongoose.model("Profile", profileSchema, "profiles"); 
+const Contract = mongoose.model("Contract", contractSchema, "contracts"); 
+const Land = mongoose.model("Land", landSchema);
+
+
+// Auth Middleware
+const authenticate = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  try {
+    const decoded = jwt.verify(token, 'secretkey');
+    req.userId = decoded.id;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+
+// Create User
 const createUser = async (req, res) => {
   const { fName, lName, email, password } = req.body;
   try {
@@ -56,8 +113,10 @@ const createUser = async (req, res) => {
   }
 };
 
+// Login User
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  console.log(email,password);
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -68,7 +127,7 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
+    console.log("check");
     const token = jwt.sign({ id: user._id }, "secretkey", { expiresIn: "1h" });
     res.json({ token });
   } catch (err) {
@@ -77,6 +136,7 @@ const loginUser = async (req, res) => {
   }
 };
 
+// Fetch Profile
 const fetchProfile = async (req, res) => {
   try {
     const profile = await Profile.findOne();
@@ -87,6 +147,7 @@ const fetchProfile = async (req, res) => {
   }
 };
 
+// Save Profile
 const saveProfile = async (req, res) => {
   const { name, surname, email, phone, pincode, image } = req.body;
   try {
@@ -111,11 +172,295 @@ const saveProfile = async (req, res) => {
   }
 };
 
+// Create Contract For Contract for farmers
+const createContract = async (req, res) => {
+  try {
+    const { image, title, area, actionText, actionLink } = req.body;
+
+    // Validate the incoming data
+    if (!image || !title || !area) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const newContract = new Contract({
+      image,
+      title,
+      area,
+      actionText: actionText || "Book Now", // Default actionText if not provided
+      actionLink: actionLink || "#", // Default actionLink if not provided
+    });
+
+    await newContract.save();
+    res.status(201).json({ message: "Contract added successfully" });
+  } catch (error) {
+    console.error("Failed to save contract:", error);
+    res.status(500).json({ message: "Failed to save contract. Please try again." });
+  }
+};
+
+const showContracts = async(req,res)=>{
+  try{
+    let data = Contract.find({});
+    console.log(data);
+    res.status(200).json(data);
+  }catch(err){
+    res.status(500).json({message: "failed to fetch data"});
+  }
+}
+
+// Fix the showContracts endpoint
+app.get('/api/contracts', async (req, res) => {
+  try {
+      const contracts = await Contract.find();
+      res.status(200).json(contracts);
+  } catch (error) {
+      console.error('Error fetching contracts:', error);
+      res.status(500).json({ message: 'Failed to fetch contracts' });
+  }
+});
+
+// Improve delete endpoint
+app.delete('/api/contracts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid contract ID format' });
+    }
+
+    const deletedContract = await Contract.findByIdAndDelete(id);
+    
+    if (!deletedContract) {
+      return res.status(404).json({ message: 'Contract not found' });
+    }
+
+    res.status(200).json({
+      message: 'Contract deleted successfully',
+      deletedId: deletedContract._id
+    });
+  } catch (error) {
+    console.error('Error deleting contract:', error);
+    res.status(500).json({
+      message: 'Server error during deletion',
+      error: error.message
+    });
+  }
+});
+const handleDelete = async (id, endpoint, setter) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:5000/api/${endpoint}/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to delete item');
+    }
+
+    setter(prev => prev.filter(item => item._id !== id));
+    alert('Item deleted successfully!');
+  } catch (error) {
+    console.error('Delete error:', error);
+    alert(error.message || 'Error deleting item');
+  }
+};
+
+
+
+
+
+
+
+
+
+// Create Land (Keep authenticated for submission)
+app.post('/api/lands', authenticate, async (req, res) => {
+  try {
+    const { image, title, area, price, status } = req.body;
+    if (!image || !title || !area || !price) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const newLand = new Land({
+      image,
+      title,
+      area,
+      price,
+      status: status || 'Available',
+      user: req.userId
+    });
+
+    await newLand.save();
+    res.status(201).json(newLand);
+  } catch (error) {
+    console.error('Error creating land:', error);
+    res.status(500).json({ message: 'Failed to create land' });
+  }
+});
+
+// Fetch All Lands (for display — no authenticate)
+app.get('/api/lands', async (req, res) => {
+  try {
+    const lands = await Land.find(); // No req.userId filter here
+    res.status(200).json(lands);
+  } catch (error) {
+    console.error('Error fetching lands:', error);
+    res.status(500).json({ message: 'Failed to fetch lands' });
+  }
+});
+
+// Delete land (with authentication)
+app.delete('/api/lands/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedLand = await Land.findByIdAndDelete(id);
+    if (!deletedLand) {
+      return res.status(404).json({ message: 'Land not found' });
+    }
+    res.json({ message: 'Land deleted', deletedId: deletedLand._id });
+  } catch (error) {
+    console.error('Error deleting land:', error);
+    res.status(500).json({ message: 'Failed to delete land' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Add to existing schemas
+const landRentSchema = new mongoose.Schema({
+  image: String,
+  title: String,
+  area: String,
+  monthlyRate: Number,
+  status: {
+    type: String,
+    enum: ['Available', 'Pre-book'],
+    default: 'Available'
+  },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+}, { collection: 'land Rent' });
+
+const equipmentRentSchema = new mongoose.Schema({
+  image: String,
+  title: String,
+  type: String,
+  dailyRate: Number,
+  status: {
+    type: String,
+    enum: ['Available', 'Pre-book'],
+    default: 'Available'
+  },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+}, { collection: 'Equipment Rent' });
+
+
+
+const LandRent = mongoose.model('LandRent', landRentSchema);
+const EquipmentRent = mongoose.model('EquipmentRent', equipmentRentSchema);
+
+// Land Rent Routes
+app.get('/api/land-rent', async (req, res) => {
+  try {
+    const lands = await LandRent.find();
+    res.json(lands);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch land rentals' });
+  }
+});
+
+// Update routes to handle collection names with spaces
+app.post('/api/land-rent', authenticate, async (req, res) => {
+  try {
+    const newLand = new LandRent({
+      ...req.body,
+      user: req.userId,
+      monthlyRate: Number(req.body.monthlyRate) // Ensure number conversion
+    });
+    
+    const savedLand = await newLand.save();
+    res.status(201).json(savedLand);
+  } catch (error) {
+    console.error('Land creation error:', error);
+    res.status(400).json({ 
+      message: 'Error creating land rental',
+      error: error.message
+    });
+  }
+});
+
+app.delete('/api/land-rent/:id', authenticate, async (req, res) => {
+  try {
+    await LandRent.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Land rental deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting land rental' });
+  }
+});
+
+// Equipment Rent Routes
+app.get('/api/equipment-rent', async (req, res) => {
+  try {
+    const equipment = await EquipmentRent.find();
+    res.json(equipment);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch equipment rentals' });
+  }
+});
+
+app.post('/api/equipment-rent', authenticate, async (req, res) => {
+  try {
+    const newEquipment = new EquipmentRent({
+      ...req.body,
+      user: req.userId,
+      dailyRate: Number(req.body.dailyRate) // Ensure number conversion
+    });
+    
+    const savedEquipment = await newEquipment.save();
+    res.status(201).json(savedEquipment);
+  } catch (error) {
+    console.error('Equipment creation error:', error);
+    res.status(400).json({ 
+      message: 'Error creating equipment rental',
+      error: error.message
+    });
+  }
+});
+
+app.delete('/api/equipment-rent/:id', authenticate, async (req, res) => {
+  try {
+    await EquipmentRent.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Equipment rental deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting equipment rental' });
+  }
+});
+
+
+
+
 // Routes
 app.post("/api/signup", createUser);
 app.post("/api/login", loginUser);
 app.get("/api/profile", fetchProfile);
 app.post("/api/profile", saveProfile);
+app.post("/api/contracts", createContract);
+app.get("/api/contracts",showContracts);
+app.get("/api/contracts",handleDelete);
 
 // Error-handling middleware
 app.use((err, req, res, next) => {
@@ -125,8 +470,15 @@ app.use((err, req, res, next) => {
 
 // Handle 404 (invalid endpoint)
 app.use((req, res) => {
-  res.status(404).json({ message: "Endpoint not found" });
+  res.status(404).json({ message: "Endpoint not found.." });
 });
 
 // Start Server
-app.listen(5000, () => console.log("Server running on port 5000"));
+const port = 5000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+
+  
+

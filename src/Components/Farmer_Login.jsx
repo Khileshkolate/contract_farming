@@ -36,7 +36,7 @@ const Farmer_Login = () => {
       setError(err.message);
     }
   };
-
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-green-800 to-green-500 text-white">
       <header className="absolute top-0 w-full bg-gradient-to-r from-green-800 to-green-500 text-center py-6 rounded-b-3xl shadow-2xl border-b-4 border-green-400">

@@ -31,7 +31,7 @@ const Buyer_Login = () => {
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
       localStorage.setItem("buyerToken", data.token);
-      navigate("/buyer-dashboard");
+      navigate("/BuyerDashboard");
     } catch (err) {
       setError(err.message);
     }
@@ -98,3 +98,4 @@ const Buyer_Login = () => {
 };
 
 export default Buyer_Login;
+  

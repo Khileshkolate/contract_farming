@@ -12,11 +12,12 @@ const BuyerDashboard = () => {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Update fetchWithAuth function
   const fetchWithAuth = async (url, options = {}) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      setTempNotification('Authentication required');
-      throw new Error('No authentication token');
+      window.location.href = '/BuyerDashboard';
+      throw new Error('No token');
     }
 
     try {
@@ -29,94 +30,47 @@ const BuyerDashboard = () => {
         }
       });
 
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/BuyerDashboard';
+        return;
+      }
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Request failed');
+        throw new Error(error.message);
       }
 
       return response.json();
     } catch (error) {
-      console.error(`API call to ${url} failed:`, error);
+      console.error("API error:", error);
       setTempNotification(error.message);
       throw error;
     }
   };
 
-  const fetchProfile = async () => {
-    try {
-      const data = await fetchWithAuth('/api/profile');
-      if (data.profile) setProfile(data.profile);
-    } catch (error) {
-      console.error('Profile fetch failed:', error);
-    }
-  };
 
+  // Update fetchContracts function
   const fetchContracts = async () => {
     try {
       const data = await fetchWithAuth('/api/contracts');
-      if (data.contracts) setContracts(data.contracts);
+      setContracts(data); 
     } catch (error) {
-      console.error('Contracts fetch failed:', error);
+      console.error('Contracts error:', error);
     }
   };
 
-  const fetchCart = async () => {
-    try {
-      const data = await fetchWithAuth('/api/cart');
-      if (data.cart) setCartItems(data.cart);
-    } catch (error) {
-      console.error('Cart fetch failed:', error);
-    }
-  };
+
 
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([fetchProfile(), fetchContracts(), fetchCart()]);
+      await fetchContracts();
     };
     loadData();
   }, []);
 
-  const handleProfileSubmit = async (formData) => {
-    setIsSaving(true);
-    try {
-      const data = await fetchWithAuth('/api/profile', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (data.success) {
-        setProfile(data.profile);
-        setShowProfileForm(false);
-        setTempNotification('Profile saved successfully');
-      }
-    } catch (error) {
-      setTempNotification('Profile save failed');
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setTempNotification(''), 5000);
-    }
-  };
+  
 
-  const handleCartAction = async (contract, action = 'add') => {
-    try {
-      if (action === 'add') {
-        await fetchWithAuth('/api/cart', {
-          method: 'POST',
-          body: JSON.stringify({
-            contractId: contract._id,
-            title: contract.title,
-            price: contract.price,
-            farmer: `${contract.farmer.firstName} ${contract.farmer.lastName}`
-          })
-        });
-      } else {
-        await fetchWithAuth(`/api/cart/${contract._id}`, { method: 'DELETE' });
-      }
-      await fetchCart();
-    } catch (error) {
-      setTempNotification(`Failed to ${action} item`);
-    }
-  };
 
   const ProfileForm = () => {
     const [form, setForm] = useState({
@@ -127,16 +81,6 @@ const BuyerDashboard = () => {
       image: null
     });
 
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      const formData = new FormData();
-      formData.append('firstName', form.firstName);
-      formData.append('lastName', form.lastName);
-      formData.append('pincode', form.pincode);
-      formData.append('address', form.address);
-      if (form.image) formData.append('image', form.image);
-      handleProfileSubmit(formData);
-    };
 
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -192,17 +136,18 @@ const BuyerDashboard = () => {
       </div>
       <div className="space-y-4">
         {cartItems.map(item => (
-          <div key={item._id} className="flex justify-between items-center bg-white/5 p-4 rounded-lg">
-            <div>
-              <h3 className="text-emerald-300">{item.title}</h3>
-              <p className="text-sm text-emerald-400">₹{item.price}</p>
-              <p className="text-xs text-emerald-500">By {item.farmer}</p>
-            </div>
-            <button onClick={() => handleCartAction(item, 'remove')}
-              className="p-2 hover:bg-rose-400/10 rounded-lg text-rose-300">
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
+        <div className="flex justify-between items-center">
+        <div>
+          <p className="text-emerald-400">₹{contract.price}</p>
+          <p className="text-xs text-emerald-500">
+            {contract.duration} days | {contract.farmer?.fName} {contract.farmer?.lName}
+          </p>
+        </div>
+        <button onClick={() => handleCartAction(contract)}
+          className="px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20">
+          {cartItems.some(i => i._id === contract._id) ? 'Remove' : 'Add to Cart'}
+        </button>
+      </div>
         ))}
         {cartItems.length === 0 && <p className="text-center text-emerald-400">Cart is empty</p>}
       </div>
@@ -223,7 +168,7 @@ const BuyerDashboard = () => {
             <div className="flex items-center gap-4">
               <ShoppingCartIcon className="w-8 h-8 text-emerald-300" />
               <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-400">
-                AgriConnect
+                Digital Krishii
               </h1>
             </div>
             <div className="flex items-center gap-6">
@@ -299,19 +244,16 @@ const BuyerDashboard = () => {
               </div>
 
               <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-                <h2 className="text-xl font-bold text-emerald-300 mb-6">Available Contracts</h2>
+                <h2 className="text-xl font-bold text-emerald-300 mb-6">Recents Contracts</h2>
                 <div className="flex overflow-x-auto pb-4 space-x-6">
                   {contracts.map(contract => (
                     <div key={contract._id} className="bg-white/5 p-6 rounded-xl min-w-[300px]">
                       <h3 className="text-lg font-bold text-emerald-300">{contract.title}</h3>
                       <p className="text-emerald-400 text-sm my-4">{contract.description}</p>
                       <div className="flex justify-between items-center">
-                        <div>
-                          <p className="text-emerald-400">₹{contract.price}</p>
-                          <p className="text-xs text-emerald-500">
-                            {contract.duration} days | {contract.farmer?.firstName} {contract.farmer?.lastName}
-                          </p>
-                        </div>
+                      <div className="text-xs text-emerald-500">
+      {contract.duration} days | {contract.farmer?.fName} {contract.farmer?.lName}
+    </div>
                         <button onClick={() => handleCartAction(contract)}
                           className="px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20">
                           {cartItems.some(i => i._id === contract._id) ? 'Remove' : 'Add to Cart'}

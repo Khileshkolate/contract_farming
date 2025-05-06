@@ -23,7 +23,7 @@ app.use(cors({
 app.use(bodyParser.json());
 
 // MongoDB Connection
-mongoose.connect("mongodb://localhost:27017/Farmer_Login", {
+mongoose.connect("mongodb+srv://khilesh:12345@cluster0.kbiwox8.mongodb.net/Farmer_Login", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -56,6 +56,8 @@ const contractSchema = new mongoose.Schema({
   actionText: String,
   actionLink: String,
 });
+
+
 
 // Land Schema
 const landSchema = new mongoose.Schema({
@@ -326,18 +328,6 @@ app.delete('/api/lands/:id', authenticate, async (req, res) => {
     res.status(500).json({ message: 'Failed to delete land' });
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

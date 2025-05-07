@@ -68,13 +68,7 @@ const BuyerDashboard = () => {
     }
   };
 
-  const handleCartAction = (contract) => {
-    setCartItems(prev => (
-      prev.some(i => i._id === contract._id) 
-        ? prev.filter(i => i._id !== contract._id)
-        : [...prev, contract]
-    ));
-  };
+
 
   useEffect(() => {
     const token = localStorage.getItem('buyerToken');
@@ -86,14 +80,12 @@ const BuyerDashboard = () => {
     let isMounted = true;
     const loadData = async () => {
       try {
-        const [contractsData, profileData] = await Promise.all([
+        const [contractsData] = await Promise.all([
           fetchContracts(),
-          fetchWithAuth('/api/profile')
+         
         ]);
         
-        if (isMounted) {
-          setProfile(profileData);
-        }
+        
       } catch (error) {
         if (isMounted) {
           console.error('Data loading error:', error);
@@ -248,6 +240,7 @@ const BuyerDashboard = () => {
                 </div>
               ) : (
                 <div className="text-center py-8 text-emerald-400">No contracts available</div>
+                
               )}
             </div>
           )}

@@ -26,10 +26,10 @@ const resources = {
         cta: "Start Trading Now"
       },
       sections: {
-        contracts: "Active Contracts",
-        lands: "Available Lands",
-        rent: "Land Lease",
-        products: "Farm Products"
+        contracts: "Contracts for Farmers",
+        lands: "Land Available For Contract Farming",
+        rent: "Land Available For Rent",
+        products: "Products Available"
       },
       footer: {
         copyright: "© {{year}} Digital Krishii",

@@ -5,15 +5,17 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 
 
+
+
+
 const app = express();
 app.use(express.json());
 // app.use(cors());
 
 app.use(cors({
-  // origin: 'http://localhost:5173', // Match your frontend origin
-  origin: ["http://localhost:3000", "http://localhost:5173"], 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: 'http://localhost:5173', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
 }));
 
@@ -38,15 +40,17 @@ const userSchema = new mongoose.Schema({
 const contractSchema = new mongoose.Schema({
   image: String,
   title: String,
+  description: String,
+  price: Number,
+  duration: Number,
   area: String,
-  actionText: String,
-  actionLink: String,
+  farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  createdAt: { type: Date, default: Date.now }
 });
 
 
-
 const User = mongoose.model("User", userSchema, "users");
-const Contract = mongoose.model("Contract", contractSchema);
+const Contract = mongoose.model("Contract", contractSchema, "contracts"); 
 
 // Authentication Middleware
 const authenticate = async (req, res, next) => {
@@ -124,9 +128,51 @@ app.get("/api/contracts", authenticate, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
+const showContracts = async(req,res)=>{
+  try{
+    let data = Contract.find({});
+    console.log(data);
+
+  }catch(err){
+    res.status(500).json({message: "failed to fetch data"});
+  }
+}
+
+// Fix the showContracts endpoint
+app.get("/api/contracts", authenticate, async (req, res) => {
+  try {
+    const contracts = await Contract.find()
+      .populate('farmer', 'fName lName email')
+      .sort({ createdAt: -1 });
+
+    const enhancedContracts = contracts.map(contract => ({
+      _id: contract._id,
+      title: contract.title,
+      description: contract.description || "Quality agricultural contract",
+      price: contract.price,
+      duration: contract.duration || 90,
+      farmer: {
+        fName: contract.farmer?.fName || "Unknown",
+        lName: contract.farmer?.lName || "Farmer"
+      },
+      image: contract.image,
+      area: contract.area
+    }));
+
+    res.json(enhancedContracts);
+  } catch (error) {
+    console.error("Contracts error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // User Authentication Routes
 app.post("/api/signup", createUser);
 app.post("/api/login", loginUser);
+app.get("/api/contracts",showContracts);
+
 
 
 

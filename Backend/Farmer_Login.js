@@ -440,6 +440,34 @@ app.delete('/api/equipment-rent/:id', authenticate, async (req, res) => {
   }
 });
 
+// In farmer_server.js
+app.post('/api/contracts', authenticate, async (req, res) => {
+  try {
+    const { image, title, description, price, duration, area } = req.body;
+    
+    const newContract = new Contract({
+      image,
+      title,
+      description,
+      price: Number(price),
+      duration: Number(duration) || 90,
+      area,
+      farmer: req.userId
+    });
+
+    await newContract.save();
+    
+    // Populate farmer info
+    const contractWithFarmer = await Contract.findById(newContract._id)
+      .populate('farmer', 'fName lName');
+
+    res.status(201).json(contractWithFarmer);
+  } catch (error) {
+    console.error("Contract creation error:", error);
+    res.status(500).json({ message: "Failed to create contract" });
+  }
+});
+
 
 
 

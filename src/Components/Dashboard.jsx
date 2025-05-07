@@ -217,10 +217,10 @@ const Dashboard = () => {
 };
 
 const farmerContracts = [
-  { img: "src/Images/11.jpg", title: "Wheat Cultivation", detail: "500 Acres" },
-  { img: "src/Images/3.jpg", title: "Vegetable Farming", detail: "200 Acres" },
-  { img: "src/Images/2.jpg", title: "Fruit Orchard", detail: "300 Acres" },
-  { img: "src/Images/4.jpeg", title: "Dairy Farming", detail: "150 Acres" },
+  { img: "src/Images/11.jpg", title: "Banana Farming", detail: "500 Acres" },
+  { img: "src/Images/3.jpg", title: "Poultry Farming", detail: "200 Acres" },
+  { img: "src/Images/2.jpg", title: "Onion Farming", detail: "300 Acres" },
+  { img: "src/Images/4.jpeg", title: "Fish Farming", detail: "150 Acres" },
 ];
 
 const landContracts = [
@@ -239,9 +239,9 @@ const landRent = [
 ];
 
 const products = [
-  { img: "src/Images/manual-0102p-dual-samie-original-imah6y6fmaccwcye.webp", title: "Modern Tractor", detail: "₹8,50,000" },
-  { img: "src/Images/2-pcs-gardening-pruner-heavy-roll-cutter-2-asgardening-original-imah4qj9xzpfmcmm.webp", title: "Hybrid Seeds", detail: "₹2,000/kg" },
-  { img: "src/Images/8-mw06901-10-farm-cult-original-imag75vmfrxvmpev.webp", title: "Organic Fertilizer", detail: "₹500/bag" },
+  { img: "src/Images/manual-0102p-dual-samie-original-imah6y6fmaccwcye.webp", title: "Power Tiller", detail: "₹1,50,000" },
+  { img: "src/Images/2-pcs-gardening-pruner-heavy-roll-cutter-2-asgardening-original-imah4qj9xzpfmcmm.webp", title: "Prunning Shears", detail: "₹1,000" },
+  { img: "src/Images/8-mw06901-10-farm-cult-original-imag75vmfrxvmpev.webp", title: "Hand Weeder", detail: "₹400" },
 ];
 
 export default Dashboard;

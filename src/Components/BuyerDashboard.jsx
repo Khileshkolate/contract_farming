@@ -5,19 +5,18 @@ const BuyerDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [profile, setProfile] = useState(null);
   const [showProfileForm, setShowProfileForm] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [tempNotification, setTempNotification] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [contracts, setContracts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Update fetchWithAuth function
   const fetchWithAuth = async (url, options = {}) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('buyerToken');
     if (!token) {
-      window.location.href = '/BuyerDashboard';
-      throw new Error('No token');
+      window.location.href = '/login';
+      return Promise.reject('Redirecting to login');
     }
 
     try {
@@ -31,14 +30,14 @@ const BuyerDashboard = () => {
       });
 
       if (response.status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/BuyerDashboard';
+        localStorage.removeItem('buyerToken');
+        window.location.href = '/login';
         return;
       }
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Request failed');
       }
 
       return response.json();
@@ -49,110 +48,63 @@ const BuyerDashboard = () => {
     }
   };
 
-
-  // Update fetchContracts function
   const fetchContracts = async () => {
     try {
       const data = await fetchWithAuth('/api/contracts');
-      setContracts(data); 
+      if (!Array.isArray(data)) throw new Error('Invalid data format');
+      
+      const validContracts = data.filter(contract => 
+        contract._id && contract.title && contract.description && 
+        contract.price && contract.duration && contract.farmer
+      );
+      
+      setContracts(validContracts);
     } catch (error) {
       console.error('Contracts error:', error);
+      setTempNotification(error.message);
+      setContracts([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-
-
-  useEffect(() => {
-    const loadData = async () => {
-      await fetchContracts();
-    };
-    loadData();
-  }, []);
-
-  
-
-
-  const ProfileForm = () => {
-    const [form, setForm] = useState({
-      firstName: profile?.firstName || '',
-      lastName: profile?.lastName || '',
-      pincode: profile?.pincode || '',
-      address: profile?.address || '',
-      image: null
-    });
-
-
-    return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 w-full max-w-md">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-emerald-300">Profile Settings</h2>
-            <button onClick={() => setShowProfileForm(false)} className="p-2 hover:bg-white/10 rounded-full">
-              <XMarkIcon className="w-6 h-6 text-emerald-300" />
-            </button>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <input type="text" placeholder="First Name" value={form.firstName} 
-                onChange={e => setForm({...form, firstName: e.target.value})}
-                className="p-2 bg-white/5 rounded-lg text-white" required />
-              <input type="text" placeholder="Last Name" value={form.lastName}
-                onChange={e => setForm({...form, lastName: e.target.value})}
-                className="p-2 bg-white/5 rounded-lg text-white" required />
-            </div>
-            <input type="text" placeholder="Pincode" value={form.pincode} pattern="\d{6}"
-              onChange={e => setForm({...form, pincode: e.target.value})}
-              className="w-full p-2 bg-white/5 rounded-lg text-white" required />
-            <textarea placeholder="Address" value={form.address} required
-              onChange={e => setForm({...form, address: e.target.value})}
-              className="w-full p-2 bg-white/5 rounded-lg text-white h-32" />
-            <div className="flex items-center gap-4">
-              <input type="file" accept="image/*"
-                onChange={e => setForm({...form, image: e.target.files[0]})}
-                className="text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-400/10 file:text-emerald-300 hover:file:bg-emerald-400/20" />
-              {profile?.image && <img src={profile.image} alt="Profile" className="w-12 h-12 rounded-full object-cover" />}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <button type="button" onClick={() => setShowProfileForm(false)}
-                className="p-2 bg-rose-400/10 text-rose-300 rounded-lg hover:bg-rose-400/20">Cancel</button>
-              <button type="submit" disabled={isSaving}
-                className="p-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20 disabled:opacity-50">
-                {isSaving ? 'Saving...' : 'Save Profile'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
+  const handleCartAction = (contract) => {
+    setCartItems(prev => (
+      prev.some(i => i._id === contract._id) 
+        ? prev.filter(i => i._id !== contract._id)
+        : [...prev, contract]
+    ));
   };
 
-  const CartSidebar = () => (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white/5 backdrop-blur-xl border-l border-white/10 p-6 z-50">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-emerald-300">My Cart</h2>
-        <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-white/10 rounded-full">
-          <XMarkIcon className="w-6 h-6 text-emerald-300" />
-        </button>
-      </div>
-      <div className="space-y-4">
-        {cartItems.map(item => (
-        <div className="flex justify-between items-center">
-        <div>
-          <p className="text-emerald-400">₹{contract.price}</p>
-          <p className="text-xs text-emerald-500">
-            {contract.duration} days | {contract.farmer?.fName} {contract.farmer?.lName}
-          </p>
-        </div>
-        <button onClick={() => handleCartAction(contract)}
-          className="px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20">
-          {cartItems.some(i => i._id === contract._id) ? 'Remove' : 'Add to Cart'}
-        </button>
-      </div>
-        ))}
-        {cartItems.length === 0 && <p className="text-center text-emerald-400">Cart is empty</p>}
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    const token = localStorage.getItem('buyerToken');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    let isMounted = true;
+    const loadData = async () => {
+      try {
+        const [contractsData, profileData] = await Promise.all([
+          fetchContracts(),
+          fetchWithAuth('/api/profile')
+        ]);
+        
+        if (isMounted) {
+          setProfile(profileData);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Data loading error:', error);
+          setTempNotification('Failed to load data');
+        }
+      }
+    };
+    
+    loadData();
+    return () => { isMounted = false };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0a3d2d] via-[#1b5e4a] to-[#2d7b62]">
@@ -223,7 +175,6 @@ const BuyerDashboard = () => {
                 {[
                   { title: "Active Contracts", value: contracts.length, change: "+12%", status: 'positive' },
                   { title: "Cart Items", value: cartItems.length, change: "+5%", status: 'positive' },
-                  { title: "Notifications", value: notifications.length, change: "-2%", status: 'negative' },
                   { title: "Profile Complete", value: profile ? '100%' : '0%', change: profile ? "+100%" : "+0%", status: 'positive' }
                 ].map((stat, index) => (
                   <div key={index} className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
@@ -244,32 +195,64 @@ const BuyerDashboard = () => {
               </div>
 
               <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-                <h2 className="text-xl font-bold text-emerald-300 mb-6">Recents Contracts</h2>
-                <div className="flex overflow-x-auto pb-4 space-x-6">
-                  {contracts.map(contract => (
-                    <div key={contract._id} className="bg-white/5 p-6 rounded-xl min-w-[300px]">
-                      <h3 className="text-lg font-bold text-emerald-300">{contract.title}</h3>
-                      <p className="text-emerald-400 text-sm my-4">{contract.description}</p>
-                      <div className="flex justify-between items-center">
-                      <div className="text-xs text-emerald-500">
-      {contract.duration} days | {contract.farmer?.fName} {contract.farmer?.lName}
-    </div>
-                        <button onClick={() => handleCartAction(contract)}
-                          className="px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20">
-                          {cartItems.some(i => i._id === contract._id) ? 'Remove' : 'Add to Cart'}
-                        </button>
+                <h2 className="text-xl font-bold text-emerald-300 mb-6">Recent Contracts</h2>
+                {isLoading ? (
+                  <div className="text-center py-8 text-emerald-300">Loading contracts...</div>
+                ) : contracts.length > 0 ? (
+                  <div className="flex overflow-x-auto pb-4 space-x-6">
+                    {contracts.slice(0, 5).map(contract => (
+                      <div key={contract._id} className="bg-white/5 p-6 rounded-xl min-w-[300px]">
+                        <h3 className="text-lg font-bold text-emerald-300">{contract.title}</h3>
+                        <p className="text-emerald-400 text-sm my-4">{contract.description}</p>
+                        <div className="flex justify-between items-center">
+                          <div className="text-xs text-emerald-500">
+                            {contract.duration} days | {contract.farmer?.fName} {contract.farmer?.lName}
+                          </div>
+                          <button onClick={() => handleCartAction(contract)}
+                            className="px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20">
+                            {cartItems.some(i => i._id === contract._id) ? 'Remove' : 'Add to Cart'}
+                          </button>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-emerald-400">No contracts available</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'contracts' && (
+            <div className="space-y-6">
+              {isLoading ? (
+                <div className="text-center py-8 text-emerald-300">Loading contracts...</div>
+              ) : contracts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {contracts.map(contract => (
+                    <div key={contract._id} className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
+                      <h3 className="text-lg font-bold text-emerald-300 mb-2">{contract.title}</h3>
+                      <p className="text-emerald-400 text-sm mb-4">{contract.description}</p>
+                      <div className="flex justify-between items-center text-xs text-emerald-500">
+                        <span>Duration: {contract.duration} days</span>
+                        <span>Price: ₹{contract.price}</span>
+                      </div>
+                      <button 
+                        onClick={() => handleCartAction(contract)}
+                        className="w-full mt-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20"
+                      >
+                        {cartItems.some(i => i._id === contract._id) ? 'Remove from Cart' : 'Add to Cart'}
+                      </button>
                     </div>
                   ))}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8 text-emerald-400">No contracts available</div>
+              )}
             </div>
           )}
         </main>
       </div>
-
-      {showProfileForm && <ProfileForm />}
-      {isCartOpen && <CartSidebar />}
     </div>
   );
 };

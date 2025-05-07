@@ -36,14 +36,13 @@ const userSchema = new mongoose.Schema({
 
 // Update contract schema
 const contractSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  price: { type: Number, required: true },
-  duration: { type: Number, required: true },
-  farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  status: { type: String, default: 'available' },
-  createdAt: { type: Date, default: Date.now }
+  image: String,
+  title: String,
+  area: String,
+  actionText: String,
+  actionLink: String,
 });
+
 
 
 const User = mongoose.model("User", userSchema, "users");

@@ -14,10 +14,16 @@ import BuyerDashboard from "./Components/BuyerDashboard.jsx";
 import ContractCard from "./Components/ContractCard.jsx";
 import './i18n';
 
+
+
 function App() {
   return (
+    
     <Suspense fallback={<div>Loading...</div>}>
+      
       <Router>
+
+        
         <Routes>
           <Route path="/" element={<Navigate to="/Dashboard" replace />} />
           <Route path="/Dashboard" element={<Dashboard />} />
@@ -33,6 +39,7 @@ function App() {
           <Route path="/ContractFormats" element={<ContractFormats />} />
           <Route path="/BuyerDashboard" element={<BuyerDashboard />} />
           <Route path="/ContractCard" element={<ContractCard />} />
+    
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
       </Router>

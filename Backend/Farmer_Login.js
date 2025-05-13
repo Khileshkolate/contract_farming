@@ -18,6 +18,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
 }));
+mongoose.set('strictPopulate', false);
+
 
 
 app.use(bodyParser.json());
@@ -55,6 +57,7 @@ const contractSchema = new mongoose.Schema({
   area: String,
   actionText: String,
   actionLink: String,
+   farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
 
@@ -73,12 +76,39 @@ const landSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
+//Enhanced Negotiation Schema
+const negotiationSchema = new mongoose.Schema({
+  contractId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contract', required: true },
+  buyerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },  // <-- this is required
+  proposedPrice: { type: Number},
+  message:{type: String,required: true},
+  status: { type: String, default: 'Pending' }
+});
+
+// const viewcontractdetails = new mongoose.Schema({
+//   contractId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contract', required: true },
+//   buyerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+//   farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+//   message: { type: String, required: true },
+//   status: { 
+//     type: String, 
+//     enum: ['pending', 'accepted', 'rejected', 'finalized', 'closed'],
+//     default: 'pending'
+//   },
+//   createdAt: { type: Date, default: Date.now }
+// });
+
+
+
 
 // Models
 const User = mongoose.model("User", userSchema, "users"); 
 const Profile = mongoose.model("Profile", profileSchema, "profiles"); 
 const Contract = mongoose.model("Contract", contractSchema, "contracts"); 
 const Land = mongoose.model("Land", landSchema);
+const Negotiation = mongoose.model('Negotiation', negotiationSchema);
+
 
 
 // Auth Middleware
@@ -129,7 +159,7 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    console.log("check");
+    console.log("checking");
     const token = jwt.sign({ id: user._id }, "secretkey", { expiresIn: "1h" });
     res.json({ token });
   } catch (err) {
@@ -469,6 +499,121 @@ app.post('/api/contracts', authenticate, async (req, res) => {
 });
 
 
+// Add to negotiation routes
+app.get('/api/negotiations', authenticate, async (req, res) => {
+  // console.log("negotiation check");
+  try {
+    // console.log("User  -> ",req.userId);
+    const negotiations = await Negotiation.find({ farmer: "67e055237071a2bd8f9fad7b" })
+      .populate('buyerId', 'fName lName email')
+      .populate('contractId', 'title price')
+      .sort({ createdAt: -1 });
+      // console.log("notification found",negotiations);
+    res.json(negotiations);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch negotiations' });
+  }
+});
+
+
+// Update negotiation endpoint
+app.post("/api/negotiations", authenticate, async (req, res) => {
+  console.log(req.body);
+  try {
+    const { contractId, message } = req.body;
+    
+    // Validate request
+    if (!contractId || !message) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Find contract with farmer info
+    const contract = await Contract.findById(contractId).populate('farmer');
+    if (!contract) {
+      return res.status(404).json({ message: "Contract not found" });
+    }
+    console.log("req  ",contract);
+    // Create negotiation
+    const negotiation = new Negotiation({
+      contractId: contractId,
+      buyerId: req.userId,    // Authenticated buyer ID
+      farmer: contract._id,
+      message,
+      status: "pending",
+      createdAt: new Date()
+    });
+
+    await negotiation.save();
+
+    // Populate response data
+    const result = await Negotiation.findById(negotiation._id)
+      .populate('buyer', 'fName lName email')
+      .populate('farmer', 'fName lName email')
+      .populate('contract', 'title price');
+
+    res.status(201).json(result);
+    
+  } catch (error) {
+    console.error("Negotiation error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+// // Get single negotiation with populated data
+// app.get('/api/negotiations/:id', authenticate, async (req, res) => {
+//   try {
+//     const negotiation = await Negotiation.findById(req.params.id)
+//       .populate('buyerId', 'fName lName email')
+//       .populate('contractId', 'title price area')
+//       .populate('farmer', 'fName lName email');
+
+//     if (!negotiation) {
+//       return res.status(404).json({ message: 'Negotiation not found' });
+//     }
+
+//     res.json(negotiation);
+//   } catch (error) {
+//     console.error('Error fetching negotiation:', error);
+//     res.status(500).json({ message: 'Failed to fetch negotiation' });
+//   }
+// });
+
+// // Update negotiation status
+// app.put('/api/negotiations/:id/status', authenticate, async (req, res) => {
+//   try {
+//     const { status } = req.body;
+//     const validStatuses = ['pending', 'accepted', 'rejected', 'finalized', 'closed'];
+
+//     if (!validStatuses.includes(status)) {
+//       return res.status(400).json({ message: 'Invalid status value' });
+//     }
+
+//     const updatedNegotiation = await Negotiation.findByIdAndUpdate(
+//       req.params.id,
+//       { status },
+//       { new: true }
+//     )
+//       .populate('buyerId', 'fName lName email')
+//       .populate('contractId', 'title price area');
+
+//     if (!updatedNegotiation) {
+//       return res.status(404).json({ message: 'Negotiation not found' });
+//     }
+
+//     res.json(updatedNegotiation);
+//   } catch (error) {
+//     console.error('Error updating negotiation:', error);
+//     res.status(500).json({ message: 'Failed to update negotiation' });
+//   }
+// });
+app.get("/NegotiationDetails/:id",(req,res)=>{
+  let id=req.params;
+  console.log(id);
+  res.send("working");
+})
+
+
 
 
 // Routes
@@ -479,6 +624,8 @@ app.post("/api/profile", saveProfile);
 app.post("/api/contracts", createContract);
 app.get("/api/contracts",showContracts);
 app.get("/api/contracts",handleDelete);
+
+
 
 // Error-handling middleware
 app.use((err, req, res, next) => {

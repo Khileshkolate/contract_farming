@@ -13,6 +13,7 @@ import ContractFormats from "./Components/ContractFormats.jsx";
 import BuyerDashboard from "./Components/BuyerDashboard.jsx";
 import ContractCard from "./Components/ContractCard.jsx";
 import './i18n';
+import NegotiationDetails from './Components/NegotiationDetails';
 
 
 
@@ -39,6 +40,8 @@ function App() {
           <Route path="/ContractFormats" element={<ContractFormats />} />
           <Route path="/BuyerDashboard" element={<BuyerDashboard />} />
           <Route path="/ContractCard" element={<ContractCard />} />
+         <Route path="/NegotiationDetails/:id" element={<NegotiationDetails />} />
+
     
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>

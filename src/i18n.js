@@ -26,7 +26,7 @@ const resources = {
         cta: "Start Trading Now"
       },
       sections: {
-        contracts: "Contracts for Farmers",
+        contracts: "Contract Farming",
         lands: "Land Available For Contract Farming",
         rent: "Land Available For Rent",
         products: "Products Available"

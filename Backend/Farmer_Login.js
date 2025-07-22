@@ -218,7 +218,7 @@ const createContract = async (req, res) => {
       image,
       title,
       area,
-      actionText: actionText || "Book Now", // Default actionText if not provided
+      actionText: actionText || "Add Info", // Default actionText if not provided
       actionLink: actionLink || "#", // Default actionLink if not provided
     });
 

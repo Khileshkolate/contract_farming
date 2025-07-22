@@ -7,7 +7,7 @@ const AboutUs = () => {
   const [expandedStoryIndex, setExpandedStoryIndex] = useState(null);
 
   const ceos = [
-    { name: "Khilesh Kolate", role: "Founder & CEO", exp: "25+ years in agricultural management", desc: "Pioneered contract farming solutions in India since 1998", photo: "/" },
+    { name: "Khilesh Kolate", role: "Founder & CEO", exp: "25+ years in agricultural management", desc: "Pioneered contract farming solutions in India since 2000", photo: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVhZHNob3R8ZW58MHx8MHx8fDA%3D" },
     { name: "Priya Sharma", role: "Co-Founder & CEO", exp: "15+ years in sustainable farming practices", desc: "Championing women empowerment in agriculture", photo: "/images/ceo2.jpg" },
     { name: "Ajay Gupta", role: "CFO & CEO", exp: "10+ years in finance for agriculture", desc: "Building financial stability for farmers", photo: "/images/ceo3.jpg" },
     { name: "Ananya Verma", role: "CTO & CEO", exp: "12+ years in tech-driven farming solutions", desc: "Revolutionizing farming with technology", photo: "/images/ceo4.jpg" },
@@ -80,7 +80,7 @@ const AboutUs = () => {
 
           <div className="relative group h-[500px] rounded-3xl overflow-hidden shadow-xl">
             <img
-              src="src/Images/companyphoto1.jpeg"
+              src="https://plus.unsplash.com/premium_photo-1682092699213-6b0b5cdcadef?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZmFybWluZyUyMGNvbXBhbnklMjBwaWN0dXJlcyUyMGluJTIwY29tcGFueSUyMHdpdGglMjBlbXBvbHllZXxlbnwwfHwwfHx8MA%3D%3D"
               alt="Contract Farming"
               className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
             />
@@ -140,7 +140,7 @@ const AboutUs = () => {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="relative group h-[500px] rounded-[40px] overflow-hidden shadow-2xl">
             <img
-              src="src/Images/empowered.jpeg"
+              src="https://plus.unsplash.com/premium_photo-1682092792260-1b7cd1674a74?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGZhcm1pbmclMjBjb21wYW55JTIwcGljdHVyZXMlMjBpbiUyMGNvbXBhbnklMjB3aXRoJTIwZW1wb2x5ZWV8ZW58MHx8MHx8fDA%3D"
               alt="Happy Farmers"
               className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
             />

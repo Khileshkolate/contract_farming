@@ -14,6 +14,13 @@ import BuyerDashboard from "./Components/BuyerDashboard.jsx";
 import ContractCard from "./Components/ContractCard.jsx";
 import './i18n';
 import NegotiationDetails from './Components/NegotiationDetails';
+import ContractNegotiationPage from './Components/ContractNegotiationPage';
+import Header from './Components/Header';
+import Footer from './Components/Footer';
+import NotificationsPage from './Components/NotificationsPage';
+
+
+
 
 
 
@@ -41,6 +48,15 @@ function App() {
           <Route path="/BuyerDashboard" element={<BuyerDashboard />} />
           <Route path="/ContractCard" element={<ContractCard />} />
          <Route path="/NegotiationDetails/:id" element={<NegotiationDetails />} />
+         <Route path="/negotiation-details" element={<ContractNegotiationPage />} />
+         <Route path="/Header" element={<Header />} />
+         <Route path="/Footer" element={<Footer />} />
+         <Route path="/NotificationsPage" element={<NotificationsPage />} />
+
+         
+         
+         
+         
 
     
           <Route path="*" element={<div>404 Not Found</div>} />

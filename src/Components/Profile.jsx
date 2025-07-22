@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { User, Mail, Phone, MapPin, Camera, Home, Settings, LogOut } from "lucide-react"; // Icons for the form and navigation
-import { Link } from "react-router-dom"; // For navigation
+import { User, Mail, Phone, MapPin, Camera, Home, Settings, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+import Header from './Header';
+import Footer from './Footer';
 
 export default function ProfileForm() {
   const [profile, setProfile] = useState({
@@ -13,7 +15,7 @@ export default function ProfileForm() {
     image: "",
   });
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(""); // State for error messages
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -48,23 +50,20 @@ export default function ProfileForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
 
-    // Validate required fields
     if (!profile.name || !profile.surname || !profile.email || !profile.phone || !profile.pincode) {
       setError("All fields are required.");
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(profile.email)) {
       setError("Invalid email address.");
       return;
     }
 
-    // Validate phone number format
-    const phoneRegex = /^\d{10}$/; // Assumes a 10-digit phone number
+    const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(profile.phone)) {
       setError("Invalid phone number. Please enter a 10-digit number.");
       return;
@@ -88,42 +87,18 @@ export default function ProfileForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="text-2xl font-bold text-blue-600 flex items-center">
-                <Home className="w-8 h-8 mr-2" />
-                Digital Krishii
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/settings" className="text-gray-700 hover:text-blue-600 flex items-center">
-                <Settings className="w-6 h-6 mr-2" />
-                Settings
-              </Link>
-              <button className="text-gray-700 hover:text-blue-600 flex items-center">
-                <LogOut className="w-6 h-6 mr-2" />
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Profile Form */}
-      <div className="flex items-center justify-center p-4">
-        <div className="max-w-4xl w-full bg-white shadow-2xl rounded-xl overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 flex flex-col">
+      <Header />
+      
+      {/* Main content with top padding */}
+      <main className="flex-grow pt-16 pb-8 px-4"> {/* Added pt-16 for spacing below header */}
+        <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
           {!submitted ? (
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <h2 className="text-4xl font-bold text-center text-blue-600">Create Profile</h2>
 
-              {/* Error Message */}
               {error && <p className="text-red-500 text-center">{error}</p>}
 
-              {/* Name Field */}
               <div className="relative">
                 <User className="absolute left-3 top-3 text-gray-400" />
                 <input
@@ -137,7 +112,6 @@ export default function ProfileForm() {
                 />
               </div>
 
-              {/* Surname Field */}
               <div className="relative">
                 <User className="absolute left-3 top-3 text-gray-400" />
                 <input
@@ -151,7 +125,6 @@ export default function ProfileForm() {
                 />
               </div>
 
-              {/* Email Field */}
               <div className="relative">
                 <Mail className="absolute left-3 top-3 text-gray-400" />
                 <input
@@ -165,7 +138,6 @@ export default function ProfileForm() {
                 />
               </div>
 
-              {/* Phone Field */}
               <div className="relative">
                 <Phone className="absolute left-3 top-3 text-gray-400" />
                 <input
@@ -179,7 +151,6 @@ export default function ProfileForm() {
                 />
               </div>
 
-              {/* Pincode Field */}
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 text-gray-400" />
                 <input
@@ -193,7 +164,6 @@ export default function ProfileForm() {
                 />
               </div>
 
-              {/* Image Upload */}
               <div className="flex items-center justify-center w-full">
                 <label className="flex flex-col items-center px-4 py-6 bg-white text-black-500 rounded-lg shadow-lg tracking-wide uppercase border border-blue-500 cursor-pointer hover:bg-blue-500 hover:text-white transition-all duration-300">
                   <Camera className="w-6 h-6" />
@@ -207,7 +177,6 @@ export default function ProfileForm() {
                 </label>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-all duration-300"
@@ -219,7 +188,6 @@ export default function ProfileForm() {
             <div className="p-8 text-center">
               <h2 className="text-4xl font-bold text-blue-600">Profile</h2>
 
-              {/* Profile Image */}
               {profile.image && (
                 <img
                   src={profile.image}
@@ -228,7 +196,6 @@ export default function ProfileForm() {
                 />
               )}
 
-              {/* Profile Details */}
               <div className="mt-6 space-y-2">
                 <p className="text-2xl font-semibold">
                   {profile.name} {profile.surname}
@@ -238,7 +205,6 @@ export default function ProfileForm() {
                 <p className="text-gray-600">Pincode: {profile.pincode}</p>
               </div>
 
-              {/* Update Profile Button */}
               <button
                 onClick={() => setSubmitted(false)}
                 className="mt-6 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 focus:ring-2 focus:ring-green-500 transition-all duration-300"
@@ -248,7 +214,10 @@ export default function ProfileForm() {
             </div>
           )}
         </div>
-      </div>
+      </main>
+      
+      {/* Full-width footer at the bottom */}
+      <Footer />
     </div>
   );
 }

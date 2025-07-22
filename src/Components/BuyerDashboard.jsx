@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HomeIcon, DocumentTextIcon, ShoppingCartIcon, ChartBarIcon, UserCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, DocumentTextIcon, ShoppingCartIcon, ChartBarIcon, UserCircleIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline';
 
 const BuyerDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -12,6 +12,7 @@ const BuyerDashboard = () => {
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [profile, setProfile] = useState({});
   const [negotiationMessage, setNegotiationMessage] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for mobile sidebar
 
   const fetchWithAuth = async (url, options = {}) => {
     const token = localStorage.getItem('buyerToken');
@@ -117,14 +118,14 @@ const BuyerDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('buyerToken');
-    window.location.href = '/Dashboard';
+    window.location.href = '/Dashboard'; // Assuming /Dashboard is the main login/landing page
   };
 
   useEffect(() => {
     const checkAuthAndFetch = async () => {
       const token = localStorage.getItem('buyerToken');
       if (!token) {
-        window.location.href = '/login';
+        window.location.href = '/login'; // Redirect to login if no token
         return;
       }
       await fetchContracts();
@@ -140,13 +141,13 @@ const BuyerDashboard = () => {
         { title: "Cart Items", value: cartItems.length },
         { title: "Farmers Available", value: new Set(contracts.map(c => c.farmer?.email)).size }
       ].map((stat, idx) => (
-        <div key={idx} className="bg-white/10 p-6 rounded-xl">
+        <div key={idx} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm text-emerald-300">{stat.title}</p>
-              <p className="text-3xl font-bold text-white mt-2">{stat.value}</p>
+              <p className="text-sm text-gray-500">{stat.title}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
             </div>
-            <ChartBarIcon className="w-8 h-8 text-emerald-400" />
+            <ChartBarIcon className="w-8 h-8 text-blue-500" />
           </div>
         </div>
       ))}
@@ -154,125 +155,135 @@ const BuyerDashboard = () => {
   );
 
   const RecentContractsTable = () => (
-    <div className="bg-white/10 rounded-xl p-6">
+    <div className="bg-white rounded-lg p-6 shadow-md">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-emerald-300">Recent Contracts</h2>
-        <button className="text-emerald-400 hover:text-emerald-300">
+        <h2 className="text-xl font-bold text-gray-800">Recent Contracts</h2>
+        <button className="text-blue-500 hover:text-blue-700 text-sm font-medium">
           View All &gt;
         </button>
       </div>
       
-      <table className="w-full">
-        <thead>
-          <tr className="text-left text-emerald-300 border-b border-emerald-400/20">
-            <th className="pb-4">Farmer</th>
-            <th className="pb-4">Product</th>
-            <th className="pb-4">Quantity</th>
-            <th className="pb-4">Price</th>
-            <th className="pb-4">Status</th>
-            <th className="pb-4">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {contracts.slice(0, 3).map(contract => (
-            <tr key={contract._id} className="border-b border-emerald-400/10">
-              <td className="py-4">
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={contract.farmer?.image || '/placeholder-farmer.jpg'} 
-                    className="w-8 h-8 rounded-full object-cover"
-                    alt="Farmer"
-                  />
-                  <span>{contract.farmer?.name}</span>
-                </div>
-              </td>
-              <td className="py-4">{contract.title}</td>
-              <td className="py-4">{contract.quantity}</td>
-              <td className="py-4">₹{contract.price?.toLocaleString()}</td>
-              <td className="py-4">
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  contract.status === 'Active' ? 'bg-green-500/20 text-green-400' :
-                  contract.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                  'bg-red-500/20 text-red-400'
-                }`}>
-                  {contract.status}
-                </span>
-              </td>
-              <td className="py-4">
-                <button
-                  onClick={() => setSelectedContract(contract)}
-                  className="text-emerald-400 hover:text-emerald-300"
-                >
-                  Details &gt;
-                </button>
-              </td>
+      <div className="overflow-x-auto"> {/* Added for horizontal scrolling on small screens */}
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr className="text-left text-gray-600 border-b border-gray-200">
+              <th className="py-3 px-4 text-sm font-semibold">Farmer</th>
+              <th className="py-3 px-4 text-sm font-semibold">Product</th>
+              <th className="py-3 px-4 text-sm font-semibold">Quantity</th>
+              <th className="py-3 px-4 text-sm font-semibold">Price</th>
+              <th className="py-3 px-4 text-sm font-semibold">Status</th>
+              <th className="py-3 px-4 text-sm font-semibold">Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {contracts.slice(0, 3).map(contract => (
+              <tr key={contract._id} className="text-gray-700 hover:bg-gray-50 transition-colors duration-150">
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={contract.farmer?.image || 'https://placehold.co/40x40/E0F2F7/000000?text=F'} 
+                      className="w-8 h-8 rounded-full object-cover"
+                      alt="Farmer"
+                      onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/40x40/E0F2F7/000000?text=F' }}
+                    />
+                    <span>{contract.farmer?.name || 'N/A'}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-4">{contract.title || 'N/A'}</td>
+                <td className="py-4 px-4">{contract.quantity || 'N/A'}</td>
+                <td className="py-4 px-4">₹{(contract.price || 0).toLocaleString()}</td>
+                <td className="py-4 px-4">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    contract.status === 'Active' ? 'bg-green-100 text-green-700' :
+                    contract.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {contract.status || 'N/A'}
+                  </span>
+                </td>
+                <td className="py-4 px-4">
+                  <button
+                    onClick={() => setSelectedContract(contract)}
+                    className="text-blue-500 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Details
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
-  
-
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0a3d2d] via-[#1b5e4a] to-[#2d7b62]">
+    <div className="min-h-screen flex flex-col bg-gray-50 font-inter">
+      {/* Notification */}
       {notification && (
-        <div className="fixed top-4 right-4 p-4 bg-emerald-400/10 text-emerald-300 rounded-xl backdrop-blur-xl border border-emerald-400/30 animate-slide-in">
+        <div className="fixed top-4 right-4 p-4 bg-blue-100 text-blue-800 rounded-lg shadow-md animate-slide-in z-50">
           {notification}
         </div>
       )}
 
-      <header className="bg-white/5 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-400">
-                Digital Krishii
-              </h1>
-            </div>
-            <div className="flex items-center gap-6">
-              <button 
-                onClick={() => setShowCart(true)}
-                className="relative p-2 hover:bg-white/10 rounded-lg"
-              >
-                <ShoppingCartIcon className="w-6 h-6 text-emerald-300" />
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-emerald-400 text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                    {cartItems.length}
-                  </span>
-                )}
-              </button>
-              <div 
-                className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-lg cursor-pointer hover:bg-white/20"
-                onClick={() => setShowProfileForm(true)}
-              >
-                <UserCircleIcon className="w-8 h-8 text-emerald-200" />
-                <div>
-                  <p className="text-sm text-emerald-300">{profile.name || 'Buyer Account'}</p>
-                  <p className="text-xs text-emerald-400">{profile.email || ''}</p>
-                </div>
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Mobile menu button */}
+            <button 
+              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Bars3Icon className="w-6 h-6" />
+            </button>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Digital Krishii
+            </h1>
+          </div>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <button 
+              onClick={() => setShowCart(true)}
+              className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <ShoppingCartIcon className="w-6 h-6" />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  {cartItems.length}
+                </span>
+              )}
+            </button>
+            <div 
+              className="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-200 transition-colors"
+              onClick={() => setShowProfileForm(true)}
+            >
+              <UserCircleIcon className="w-8 h-8 text-blue-500" />
+              <div className="hidden sm:block"> {/* Hide on extra small screens */}
+                <p className="text-sm text-gray-700 font-medium">{profile.name || 'Buyer Account'}</p>
+                <p className="text-xs text-gray-500">{profile.email || ''}</p>
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"
-              >
-                Logout
-              </button>
             </div>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
 
+      {/* Main Content Area */}
       <div className="flex flex-1">
-        <nav className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 p-6">
+        {/* Sidebar for larger screens */}
+        <nav className="hidden lg:block w-64 bg-white border-r border-gray-200 p-6 shadow-sm">
           <div className="space-y-4">
             {['dashboard', 'contracts'].map((tab) => (
               <button 
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                  activeTab === tab ? 'bg-emerald-400/10 text-emerald-300' : 'text-emerald-200 hover:bg-white/10'
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  activeTab === tab ? 'bg-blue-100 text-blue-800 font-semibold' : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 {tab === 'dashboard' && <HomeIcon className="w-5 h-5" />}
@@ -283,93 +294,135 @@ const BuyerDashboard = () => {
           </div>
         </nav>
 
-        <main className="flex-1 p-8">
-          {activeTab === 'dashboard' && (
-            <div className="space-y-8">
-              <DashboardStats />
-              <RecentContractsTable />
-            </div>
-          )}
+        {/* Mobile Sidebar Overlay */}
+        {isSidebarOpen && (
+          <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)}></div>
+        )}
+        <div className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 p-6 shadow-lg z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:hidden`}>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Navigation</h2>
+            <button onClick={() => setIsSidebarOpen(false)} className="text-gray-500 hover:text-gray-700 p-1 rounded-full">
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="space-y-4">
+            {['dashboard', 'contracts'].map((tab) => (
+              <button 
+                key={tab}
+                onClick={() => { setActiveTab(tab); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  activeTab === tab ? 'bg-blue-100 text-blue-800 font-semibold' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {tab === 'dashboard' && <HomeIcon className="w-5 h-5" />}
+                {tab === 'contracts' && <DocumentTextIcon className="w-5 h-5" />}
+                <span className="font-medium">{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-          {activeTab === 'contracts' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {contracts.map(contract => (
-                <div key={contract._id} className="bg-white/10 p-6 rounded-xl">
-                  <img
-                    src={contract.image || '/placeholder-contract.jpg'}
-                    className="w-full h-48 object-cover rounded-lg mb-4"
-                    alt="Contract"
-                  />
-                  <h3 className="text-lg font-bold text-emerald-300">{contract.title}</h3>
-                  <div className="mt-4 space-y-2 text-sm text-emerald-400">
-                    <p>Farmer: {contract.farmer?.name}</p>
-                    <p>Quantity: {contract.quantity}</p>
-                    <p>Price: ₹{contract.price?.toLocaleString()}</p>
-                    <p>Status: {contract.status}</p>
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={() => handleCartAction(contract)}
-                      className="flex-1 px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20"
-                    >
-                      {cartItems.some(i => i._id === contract._id) ? 'Remove' : 'Add to Cart'}
-                    </button>
-                    <button
-                      onClick={() => setSelectedContract(contract)}
-                      className="px-4 py-2 bg-blue-400/10 text-blue-300 rounded-lg hover:bg-blue-400/20"
-                    >
-                      Details
-                    </button>
-                  </div>
+        {/* Main Content */}
+        <main className="flex-1 p-4 sm:p-8 bg-gray-50">
+          {isLoading ? (
+            <div className="text-center text-gray-600 text-lg py-10">Loading dashboard...</div>
+          ) : (
+            <>
+              {activeTab === 'dashboard' && (
+                <div className="space-y-8">
+                  <DashboardStats />
+                  <RecentContractsTable />
                 </div>
-              ))}
-            </div>
+              )}
+
+              {activeTab === 'contracts' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {contracts.map(contract => (
+                    <div key={contract._id} className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                      <img
+                        src={contract.image || 'https://placehold.co/400x200/E0F2F7/000000?text=Product'}
+                        className="w-full h-48 object-cover rounded-md mb-4"
+                        alt="Contract"
+                        onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x200/E0F2F7/000000?text=Product' }}
+                      />
+                      <h3 className="text-lg font-bold text-gray-800">{contract.title || 'N/A'}</h3>
+                      <div className="mt-4 space-y-2 text-sm text-gray-600">
+                        <p><strong>Farmer:</strong> {contract.farmer?.name || 'N/A'}</p>
+                        <p><strong>Quantity:</strong> {contract.quantity || 'N/A'}</p>
+                        <p><strong>Price:</strong> ₹{(contract.price || 0).toLocaleString()}</p>
+                        <p><strong>Status:</strong> <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            contract.status === 'Active' ? 'bg-green-100 text-green-700' :
+                            contract.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>{contract.status || 'N/A'}</span></p>
+                      </div>
+                      <div className="mt-4 flex flex-col sm:flex-row gap-2"> {/* Responsive buttons */}
+                        <button
+                          onClick={() => handleCartAction(contract)}
+                          className={`flex-1 px-4 py-2 rounded-md transition-colors text-sm font-medium
+                            ${cartItems.some(i => i._id === contract._id) ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                        >
+                          {cartItems.some(i => i._id === contract._id) ? 'Remove from Cart' : 'Add to Cart'}
+                        </button>
+                        <button
+                          onClick={() => setSelectedContract(contract)}
+                          className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm font-medium"
+                        >
+                          Details
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>
 
+      {/* Profile Modal */}
       {showProfileForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white/10 rounded-xl p-6 w-full max-w-md relative">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"> {/* Added responsive padding */}
+          <div className="bg-white rounded-lg p-6 sm:p-8 w-full max-w-md relative shadow-lg animate-scale-in"> {/* Added responsive padding */}
             <button 
               onClick={() => setShowProfileForm(false)}
-              className="absolute top-4 right-4 text-emerald-300 hover:text-emerald-400"
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full"
             >
               <XMarkIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold text-emerald-300 mb-6">Update Profile</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Update Profile</h2>
             <form onSubmit={updateProfile} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-emerald-300">Full Name</label>
+                <label className="text-gray-700 text-sm font-medium">Full Name</label>
                 <input
                   type="text"
                   value={profile.name || ''}
                   onChange={(e) => setProfile({...profile, name: e.target.value})}
-                  className="w-full p-3 bg-white/5 rounded-lg text-white"
+                  className="w-full p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-emerald-300">Email</label>
+                <label className="text-gray-700 text-sm font-medium">Email</label>
                 <input
                   type="email"
                   value={profile.email || ''}
-                  className="w-full p-3 bg-white/5 rounded-lg text-white"
+                  className="w-full p-3 border border-gray-300 rounded-md text-gray-600 bg-gray-50 cursor-not-allowed"
                   disabled
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-emerald-300">Phone Number</label>
+                <label className="text-gray-700 text-sm font-medium">Phone Number</label>
                 <input
                   type="tel"
                   value={profile.phone || ''}
                   onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                  className="w-full p-3 bg-white/5 rounded-lg text-white"
+                  className="w-full p-3 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20"
+                className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium"
               >
                 Save Profile
               </button>
@@ -378,47 +431,51 @@ const BuyerDashboard = () => {
         </div>
       )}
 
-          {/* Cart Modal */}
-          {showCart && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md backdrop-saturate-0 flex items-center justify-center z-50">
-          <div className="bg-white/10 rounded-xl p-6 w-full max-w-2xl relative border border-white/10">
+      {/* Cart Modal */}
+      {showCart && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"> {/* Added responsive padding */}
+          <div className="bg-white rounded-lg p-6 sm:p-8 w-full max-w-sm sm:max-w-md lg:max-w-2xl relative shadow-lg animate-scale-in"> {/* Added responsive padding and max-widths */}
             <button 
               onClick={() => setShowCart(false)}
-              className="absolute top-4 right-4 text-emerald-300 hover:text-emerald-400 transition-colors"
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full"
             >
               <XMarkIcon className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold text-emerald-300 mb-6">Your Cart</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Cart</h2>
             
             {cartItems.length === 0 ? (
-              <p className="text-emerald-400 text-center">Your cart is empty</p>
+              <p className="text-gray-600 text-center py-4">Your cart is empty</p>
             ) : (
               <div className="space-y-4">
                 {cartItems.map(item => (
-                  <div key={item._id} className="bg-white/5 p-4 rounded-lg backdrop-blur-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={item.image || '/placeholder-contract.jpg'}
-                          className="w-12 h-12 rounded-lg object-cover"
-                          alt="Contract"
-                        />
-                        <div>
-                          <h3 className="text-emerald-300">{item.title}</h3>
-                          <p className="text-emerald-400 text-sm">
-                            ₹{item.price?.toLocaleString()} • {item.quantity}
-                          </p>
-                        </div>
+                  <div key={item._id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex items-center justify-between gap-4"> {/* Added flex and gap */}
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={item.image || 'https://placehold.co/60x60/E0F2F7/000000?text=Item'}
+                        className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                        alt="Contract"
+                        onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/60x60/E0F2F7/000000?text=Item' }}
+                      />
+                      <div>
+                        <h3 className="text-gray-800 font-medium">{item.title || 'N/A'}</h3>
+                        <p className="text-gray-600 text-sm">
+                          ₹{(item.price || 0).toLocaleString()} • {item.quantity || 'N/A'}
+                        </p>
                       </div>
-                      <button
-                        onClick={() => setSelectedContract(item)}
-                        className="px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20 transition-colors"
-                      >
-                        View Details
-                      </button>
                     </div>
+                    <button
+                      onClick={() => handleCartAction(item)} // This will remove from cart
+                      className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors text-sm font-medium flex-shrink-0"
+                    >
+                      Remove
+                    </button>
                   </div>
                 ))}
+                <div className="pt-4 border-t border-gray-200 text-right">
+                  <button className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium">
+                    Proceed to Checkout
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -427,42 +484,47 @@ const BuyerDashboard = () => {
 
       {/* Contract Details Modal */}
       {selectedContract && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md backdrop-saturate-0 flex items-center justify-center z-50">
-          <div className="bg-white/10 rounded-xl p-6 w-full max-w-2xl relative border border-white/10">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"> {/* Added responsive padding */}
+          <div className="bg-white rounded-lg p-6 sm:p-8 w-full max-w-sm sm:max-w-md lg:max-w-2xl relative shadow-lg animate-scale-in"> {/* Added responsive padding and max-widths */}
             <button 
               onClick={() => setSelectedContract(null)}
-              className="absolute top-4 right-4 text-emerald-300 hover:text-emerald-400 transition-colors"
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full"
             >
               <XMarkIcon className="w-6 h-6" />
             </button>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <img
-                src={selectedContract.image || '/placeholder-contract.jpg'}
+                src={selectedContract.image || 'https://placehold.co/400x300/E0F2F7/000000?text=Product+Details'}
                 className="w-full h-64 object-cover rounded-lg"
                 alt="Contract"
+                onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x300/E0F2F7/000000?text=Product+Details' }}
               />
-              <div className="space-y-4 text-emerald-400">
-                <h2 className="text-2xl font-bold text-emerald-300">{selectedContract.title}</h2>
-                <p className="text-white/70">{selectedContract.description}</p>
-                <div className="space-y-2">
-                  <p>Farmer: {selectedContract.farmer?.name}</p>
-                  <p>Location: {selectedContract.quantity}</p>
-                  <p>Price: ₹{selectedContract.price?.toLocaleString()}</p>
-                  <p>Status: {selectedContract.status}</p>
-                  <p>Quantity: {selectedContract.area}</p>
+              <div className="space-y-4 text-gray-700">
+                <h2 className="text-2xl font-bold text-gray-800">{selectedContract.title || 'N/A'}</h2>
+                <p className="text-gray-600">{selectedContract.description || 'No description available.'}</p>
+                <div className="space-y-2 text-sm">
+                  <p><strong>Farmer:</strong> {selectedContract.farmer?.name || 'N/A'}</p>
+                  <p><strong>Location:</strong> {selectedContract.location || 'N/A'}</p> {/* Corrected property name for location */}
+                  <p><strong>Price:</strong> ₹{(selectedContract.price || 0).toLocaleString()}</p>
+                  <p><strong>Status:</strong> <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedContract.status === 'Active' ? 'bg-green-100 text-green-700' :
+                      selectedContract.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>{selectedContract.status || 'N/A'}</span></p>
+                  <p><strong>Quantity:</strong> {selectedContract.quantity || 'N/A'}</p> {/* Corrected property name for quantity */}
                 </div>
                 <div className="mt-4">
-                  <h3 className="text-emerald-300 mb-2">Send Negotiation</h3>
+                  <h3 className="text-gray-800 font-medium mb-2">Send Negotiation</h3>
                   <textarea
                     value={negotiationMessage}
                     onChange={(e) => setNegotiationMessage(e.target.value)}
-                    className="w-full p-3 bg-white/5 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-emerald-400"
+                    className="w-full p-3 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-blue-400"
                     placeholder="Type your negotiation message..."
                     rows="3"
                   />
                   <button
                     onClick={sendNegotiation}
-                    className="mt-2 px-4 py-2 bg-emerald-400/10 text-emerald-300 rounded-lg hover:bg-emerald-400/20 transition-colors"
+                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium"
                   >
                     Send Message
                   </button>

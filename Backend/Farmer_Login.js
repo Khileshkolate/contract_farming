@@ -13,7 +13,7 @@ const app = express();
 // Use middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'https://contractfarming0.netlify.app/', 
+  origin: 'https://contractfarming0.netlify.app', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true

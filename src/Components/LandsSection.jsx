@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa'; // Fixed missing imports
 
+const link = "https://contract-farming.onrender.com";
+
 const SectionTitle = ({ title }) => (
   <div className="text-center bg-green-800 text-white py-3 text-lg font-bold rounded-md mb-6 w-full">
     {title}
@@ -49,7 +51,7 @@ const LandsSection = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
         
-        const response = await fetch('http://localhost:5000/api/lands', {
+        const response = await fetch(`${link}/api/lands`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -72,7 +74,7 @@ const LandsSection = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/lands/${id}`, {
+      const response = await fetch(`${link}/api/lands/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -100,7 +102,7 @@ const LandsSection = () => {
         price: Number(formData.price) || 0
       };
 
-      const response = await fetch('http://localhost:5000/api/lands', {
+      const response = await fetch(`${link}/api/lands`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

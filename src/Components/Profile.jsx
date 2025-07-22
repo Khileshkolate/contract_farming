@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import Header from './Header';
 import Footer from './Footer';
 
+const link = "https://contract-farming.onrender.com";
+
 export default function ProfileForm() {
   const [profile, setProfile] = useState({
     name: "",
@@ -20,7 +22,7 @@ export default function ProfileForm() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/profile");
+        const response = await axios.get(`${link}/api/profile`);
         if (response.data) {
           setProfile(response.data);
           setSubmitted(true);
@@ -70,7 +72,7 @@ export default function ProfileForm() {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/api/profile", profile);
+      const response = await axios.post(`${link}/api/profile`, profile);
       if (response.data) {
         setSubmitted(true);
       }

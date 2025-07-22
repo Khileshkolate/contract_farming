@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
+const link = "https://contract-farming.onrender.com";
+
+
 const SectionTitle = ({ title }) => (
   <div className="text-center bg-green-800 text-white py-3 text-lg font-bold rounded-md mb-6 w-full">
     {title}
@@ -44,7 +47,7 @@ const EquipmentSection = () => {
     const fetchEquipment = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/equipment-rent', {
+        const response = await fetch(`${link}/api/equipment-rent`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) throw new Error('Failed to fetch equipment');
@@ -66,7 +69,7 @@ const EquipmentSection = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/equipment-rent/${id}`, {
+      const response = await fetch(`${link}/api/equipment-rent/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -92,7 +95,7 @@ const EquipmentSection = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/equipment-rent', {
+      const response = await fetch(`${link}/api/equipment-rent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

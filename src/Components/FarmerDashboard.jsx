@@ -34,7 +34,7 @@ const Header = () => {
         const fetchNegotiations = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/negotiations', {
+                const response = await fetch(`${link}/api/negotiations`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
@@ -242,7 +242,7 @@ const FarmerDashboard = () => {
         const fetchData = async (endpoint, setter) => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:5000/api/${endpoint}`, {
+                const response = await fetch(`${link}/api/${endpoint}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -267,8 +267,8 @@ const FarmerDashboard = () => {
             const token = localStorage.getItem('token');
             const method = editId ? 'PUT' : 'POST';
             const url = editId 
-                ? `http://localhost:5000/api/contracts/${editId}`
-                : 'http://localhost:5000/api/contracts';
+                ? `${link}/api/contracts/${editId}`
+                : `${link}/api/contracts`;
 
             const response = await fetch(url, {
                 method,
@@ -300,7 +300,7 @@ const FarmerDashboard = () => {
         if (window.confirm('Are you sure you want to delete this contract?')) {
             try {
                 const token = localStorage.getItem('token');
-                await fetch(`http://localhost:5000/api/contracts/${id}`, {
+                await fetch(`${link}/api/contracts/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { HomeIcon, DocumentTextIcon, ShoppingCartIcon, ChartBarIcon, UserCircleIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline';
 
+const link = "https://contract-farming.onrender.com";
+
+
 const BuyerDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [contracts, setContracts] = useState([]);
@@ -22,7 +25,7 @@ const BuyerDashboard = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000${url}`, {
+      const response = await fetch(`${link}${url}`, {
         ...options,
         headers: {
           ...options.headers,

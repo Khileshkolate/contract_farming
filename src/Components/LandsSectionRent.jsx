@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
+const link = "https://contract-farming.onrender.com";
+
 const SectionTitle = ({ title }) => (
   <div className="text-center bg-green-800 text-white py-3 text-lg font-bold rounded-md mb-6 w-full">
     {title}
@@ -43,7 +45,7 @@ const LandsSectionRent = () => {
   useEffect(() => {
     const fetchLands = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/land-rent');
+        const response = await fetch(`${link}/api/land-rent`);
         if (!response.ok) throw new Error('Failed to fetch lands');
         const data = await response.json();
         setLands(data);
@@ -63,7 +65,7 @@ const LandsSectionRent = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/land-rent/${id}`, {
+      const response = await fetch(`${link}/api/land-rent/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -94,7 +96,7 @@ const LandsSectionRent = () => {
         monthlyRate: Number(formData.monthlyRate) || 0
       };
 
-      const response = await fetch('http://localhost:5000/api/land-rent', {
+      const response = await fetch(`${link}/api/land-rent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -4,6 +4,8 @@ import { FaFileContract, FaBell } from 'react-icons/fa';
 import Header from './Header';
 import Footer from './Footer';
 
+const link = "https://contract-farming.onrender.com";
+
 const NotificationsPage = () => {
     const [negotiations, setNegotiations] = useState([]);
     const navigate = useNavigate();
@@ -12,7 +14,7 @@ const NotificationsPage = () => {
         const fetchNegotiations = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/negotiations', {
+                const response = await fetch(`${link}/api/negotiations`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();

@@ -4,8 +4,8 @@ import { FaSeedling, FaBars, FaUserCircle, FaFileContract, FaBell,
          FaHome, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-// Note: The 'link' constant seems unused in the provided context.
-// const link = "https://contract-farming.onrender.com";
+
+ const link = "https://contract-farming.onrender.com";
 
 const Header = () => {
     // State to control the visibility of the mobile menu
@@ -39,7 +39,7 @@ const Header = () => {
                 // Retrieve authentication token from local storage
                 const token = localStorage.getItem('token');
                 // Fetch negotiations data from the backend API
-                const response = await fetch('http://localhost:5000/api/negotiations', {
+                const response = await fetch(`${link}/api/negotiations`, {
                     headers: { 'Authorization': `Bearer ${token}` } // Include authorization header
                 });
                 // Parse the JSON response

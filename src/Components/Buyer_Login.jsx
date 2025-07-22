@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, UserPlus, ShoppingCart, Mail, Lock, User } from "lucide-react";
 
+const link = "https://contract-farming.onrender.com";
+
 const Buyer_Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "", fName: "", lName: "" });
@@ -18,7 +20,7 @@ const Buyer_Login = () => {
     e.preventDefault();
     setError("");
 
-    const endpoint = isSignUp ? "http://localhost:5000/api/signup" : "http://localhost:5000/api/login";
+    const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
 
     try {
       const response = await fetch(endpoint, {

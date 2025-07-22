@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaHandshake, FaCheckCircle, FaTimesCircle, FaLock } from 'react-icons/fa';
 import axios from 'axios';
 
+const link = "https://contract-farming.onrender.com";
+
 const NegotiationDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ const NegotiationDetails = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get(
-          `http://localhost:5000/api/negotiations/${id}`,
+          `${link}/api/negotiations/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setNegotiation(response.data);
@@ -42,7 +44,7 @@ const NegotiationDetails = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/negotiations/${id}/status`,
+        `${link}/api/negotiations/${id}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

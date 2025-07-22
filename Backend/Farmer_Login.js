@@ -12,13 +12,30 @@ const app = express();
 
 // Use middleware
 app.use(express.json());
+
+const allowedOrigins = [
+  'https://contractfarming0.netlify.app',
+  'http://localhost:5173'
+];
+
 app.use(cors({
-  origin: 'https://contractfarming0.netlify.app', 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like curl or mobile apps)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  }, 
+  
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
 }));
 mongoose.set('strictPopulate', false);
+
 
 
 

@@ -18,7 +18,7 @@ mongoose.connect("mongodb+srv://khilesh:12345@cluster0.kbiwox8.mongodb.net/Buyer
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log("Connected to Farmer_Login DB"))
+.then(() => console.log("Connected to Buyer_Login DB"))
 .catch(err => console.error("MongoDB connection error:", err));
 
 // Enhanced Contract Schema

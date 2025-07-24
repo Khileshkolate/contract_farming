@@ -57,6 +57,7 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 
+
 // Profile Schema
 const profileSchema = new mongoose.Schema({
   name: String,
@@ -577,58 +578,26 @@ app.post("/api/negotiations", authenticate, async (req, res) => {
 });
 
 
-// // Get single negotiation with populated data
-// app.get('/api/negotiations/:id', authenticate, async (req, res) => {
-//   try {
-//     const negotiation = await Negotiation.findById(req.params.id)
-//       .populate('buyerId', 'fName lName email')
-//       .populate('contractId', 'title price area')
-//       .populate('farmer', 'fName lName email');
 
-//     if (!negotiation) {
-//       return res.status(404).json({ message: 'Negotiation not found' });
-//     }
-
-//     res.json(negotiation);
-//   } catch (error) {
-//     console.error('Error fetching negotiation:', error);
-//     res.status(500).json({ message: 'Failed to fetch negotiation' });
-//   }
-// });
-
-// // Update negotiation status
-// app.put('/api/negotiations/:id/status', authenticate, async (req, res) => {
-//   try {
-//     const { status } = req.body;
-//     const validStatuses = ['pending', 'accepted', 'rejected', 'finalized', 'closed'];
-
-//     if (!validStatuses.includes(status)) {
-//       return res.status(400).json({ message: 'Invalid status value' });
-//     }
-
-//     const updatedNegotiation = await Negotiation.findByIdAndUpdate(
-//       req.params.id,
-//       { status },
-//       { new: true }
-//     )
-//       .populate('buyerId', 'fName lName email')
-//       .populate('contractId', 'title price area');
-
-//     if (!updatedNegotiation) {
-//       return res.status(404).json({ message: 'Negotiation not found' });
-//     }
-
-//     res.json(updatedNegotiation);
-//   } catch (error) {
-//     console.error('Error updating negotiation:', error);
-//     res.status(500).json({ message: 'Failed to update negotiation' });
-//   }
-// });
 app.get("/NegotiationDetails/:id",(req,res)=>{
   let id=req.params;
   console.log(id);
   res.send("working");
 })
+
+
+// Add this endpoint to your existing server.js
+app.get('/api/farmers', authenticate, async (req, res) => {
+  try {
+    // Fetch all farmers (users) excluding passwords
+    const farmers = await User.find({}, { password: 0 });
+    res.json(farmers);
+  } catch (error) {
+    console.error('Error fetching farmers:', error);
+    res.status(500).json({ message: 'Failed to fetch farmers' });
+  }
+});
+
 
 
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
-const link = "https://contract-farming.onrender.com";
+const link = import.meta.env.VITE_BACKEND;
 
 
 const SectionTitle = ({ title }) => (

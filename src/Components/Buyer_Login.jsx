@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, UserPlus, ShoppingCart, Mail, Lock, User } from "lucide-react";
 
-const link = "https://contract-farming.onrender.com";
+const link = import.meta.env.VITE_BACKEND;
 
 const Buyer_Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);

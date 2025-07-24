@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaHandshake, FaCheckCircle, FaTimesCircle, FaLock } from 'react-icons/fa';
 import axios from 'axios';
 
-const link = "https://contract-farming.onrender.com";
+const link = import.meta.env.VITE_BACKEND;
 
 const NegotiationDetails = () => {
   const { id } = useParams();

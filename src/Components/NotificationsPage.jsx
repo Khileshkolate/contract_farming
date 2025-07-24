@@ -4,7 +4,7 @@ import { FaFileContract, FaBell } from 'react-icons/fa';
 import Header from './Header';
 import Footer from './Footer';
 
-const link = "https://contract-farming.onrender.com";
+const link = import.meta.env.VITE_BACKEND;
 
 const NotificationsPage = () => {
     const [negotiations, setNegotiations] = useState([]);

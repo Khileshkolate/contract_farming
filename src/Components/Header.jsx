@@ -5,7 +5,7 @@ import { FaSeedling, FaBars, FaUserCircle, FaFileContract, FaBell,
 import { useNavigate } from 'react-router-dom';
 
 
- const link = "https://contract-farming.onrender.com";
+ const link = import.meta.env.VITE_BACKEND;
 
 const Header = () => {
     // State to control the visibility of the mobile menu

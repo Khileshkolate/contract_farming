@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import Header from './Header';
 import Footer from './Footer';
 
-const link = "https://contract-farming.onrender.com";
+const link = import.meta.env.VITE_BACKEND;
 
 export default function ProfileForm() {
   const [profile, setProfile] = useState({

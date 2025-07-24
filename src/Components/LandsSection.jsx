@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa'; // Fixed missing imports
 
-const link = "https://contract-farming.onrender.com";
+const link = import.meta.env.VITE_BACKEND;
 
 const SectionTitle = ({ title }) => (
   <div className="text-center bg-green-800 text-white py-3 text-lg font-bold rounded-md mb-6 w-full">

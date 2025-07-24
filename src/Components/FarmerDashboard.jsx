@@ -7,9 +7,9 @@ import LandsSection from './LandsSection.jsx';
 import EquipmentSection from './EquipmentSection';
 import LandsSectionRent from './LandsSectionRent';
 import Footer from './Footer';
+import ContractForm from './ContractForm';
 
-
-const link = "https://contract-farming.onrender.com";
+const link = import.meta.env.VITE_BACKEND;
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -236,6 +236,8 @@ const FarmerDashboard = () => {
     const [showAll, setShowAll] = useState({ contracts: false });
     const [formData, setFormData] = useState({ image: '', title: '', area: '' });
     const [editId, setEditId] = useState(null);
+    const [showContractForm, setShowContractForm] = useState(false);
+    const [editingContractId, setEditingContractId] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -260,6 +262,21 @@ const FarmerDashboard = () => {
         fetchData('products', setProducts);
         fetchData('equipment', setEquipment);
     }, []);
+
+    const fetchContracts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${link}/api/contracts`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setContracts(data);
+            }
+        } catch (error) {
+            console.error('Error fetching contracts:', error);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -324,6 +341,11 @@ const FarmerDashboard = () => {
         setShowAll(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
+    const handleAddInfo = (contractId) => {
+        setEditingContractId(contractId);
+        setShowContractForm(true);
+    };
+
     return (
         <div className="bg-gray-100 min-h-screen w-full">
             <Header />
@@ -350,7 +372,7 @@ const FarmerDashboard = () => {
                                         status={item.status}
                                         actionText="Add Info"
                                         onDelete={handleDelete}
-                                        onEdit={() => handleEdit(item)}
+                                        onEdit={() => handleAddInfo(item._id)}
                                     />
                                 ))}
                         </div>
@@ -435,6 +457,14 @@ const FarmerDashboard = () => {
                 <EquipmentSection />
             </main>
             <Footer />
+
+            {showContractForm && (
+                <ContractForm 
+                    editId={editingContractId}
+                    onClose={() => setShowContractForm(false)}
+                    onContractSaved={fetchContracts}
+                />
+            )}
         </div>
     );
 };

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, UserPlus, Leaf, Mail, Lock, User } from "lucide-react";
 const link = import.meta.env.VITE_BACKEND;
-// const link = "http://localhost:5000";
-console.log(link);
+
+
 
 const Farmer_Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -22,8 +22,6 @@ const Farmer_Login = () => {
     const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
 
     try {
-      console.log("hello");
-      console.log(link);
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

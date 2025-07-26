@@ -599,6 +599,12 @@ app.get('/api/farmers', authenticate, async (req, res) => {
 });
 
 
+// For faster executiomn of login or other onrender 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+
 
 
 

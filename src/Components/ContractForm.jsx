@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTimes, FaUpload } from 'react-icons/fa';
 
+const link = import.meta.env.VITE_BACKEND;
+
 const ContractForm = ({ editId, onClose, onContractSaved }) => {
     const [contract, setContract] = useState({
         contractId: '',
@@ -29,7 +31,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
         if (editId) {
             const fetchContract = async () => {
                 try {
-                    const response = await fetch(`http://localhost:5000/api/contracts/${editId}`);
+                    const response = await fetch(`${link}/api/contracts/${editId}`);
                     if (!response.ok) throw new Error('Failed to fetch contract');
                     const data = await response.json();
                     setContract(data);
@@ -100,8 +102,8 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
 
             const method = editId ? 'PUT' : 'POST';
             const url = editId
-                ? `http://localhost:5000/api/contracts/${editId}`
-                : 'http://localhost:5000/api/contracts';
+                ? `${link}/api/contracts/${editId}`
+                : '${link}/api/contracts';
 
             const response = await fetch(url, {
                 method,

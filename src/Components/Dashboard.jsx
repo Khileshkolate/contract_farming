@@ -217,31 +217,31 @@ const Dashboard = () => {
 };
 
 const farmerContracts = [
-  { img: "src/Images/11.jpg", title: "Banana Farming", detail: "500 Acres" },
-  { img: "src/Images/3.jpg", title: "Poultry Farming", detail: "200 Acres" },
-  { img: "src/Images/2.jpg", title: "Onion Farming", detail: "300 Acres" },
-  { img: "src/Images/4.jpeg", title: "Fish Farming", detail: "150 Acres" },
+  { img: "https://images.unsplash.com/photo-1742476353963-be38f5248736?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTc4fHxiYW5hbmElMjBmYXJtaW5nJTIwaW1hZ2VzfGVufDB8fDB8fHww", title: "Banana Farming", detail: "500 Acres" },
+  { img: "https://images.unsplash.com/photo-1589922583749-6b8473a85048?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nzl8fHBvdWx0cnklMjBmYXJtaW5nJTIwaW1hZ2VzfGVufDB8fDB8fHww", title: "Poultry Farming", detail: "200 Acres" },
+  { img: "https://images.unsplash.com/photo-1685399246790-917f3b59934e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b25pb24lMjBmYXJtaW5nJTIwaW1hZ2VzfGVufDB8fDB8fHww", title: "Onion Farming", detail: "300 Acres" },
+  { img: "https://images.unsplash.com/photo-1750215015938-52310495e646?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8ZmlzaCUyMGZhcm1pbmclMjBpbWFnZXN8ZW58MHx8MHx8fDA%3D", title: "Fish Farming", detail: "150 Acres" },
 ];
 
 const landContracts = [
-  { img: "src/Images/5.jpg", title: "Punjab", detail: "1000 Acres" },
-  { img: "src/Images/7.webp", title: "Maharashtra", detail: "800 Acres" },
-  { img: "src/Images/8.jpg", title: "Karnataka", detail: "600 Acres" },
+  { img: "https://images.unsplash.com/photo-1734152207448-5875fcde13ed?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDd8fHB1bmphYiUyMGZhcm1pbmclMjBmcmVlJTIwa2hhbGklMjBsYW5kJTIwaW1hZ2VzfGVufDB8fDB8fHww", title: "Punjab", detail: "1000 Acres" },
+  { img: "https://plus.unsplash.com/premium_photo-1742432403578-dc73ef879352?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjV8fG1haGFyYXN0cmElMjBmYXJtaW5nJTIwZnJlZSUyMGtoYWxpJTIwbGFuZCUyMGltYWdlc3xlbnwwfHwwfHx8MA%3D%3D", title: "Maharashtra", detail: "800 Acres" },
+  { img: "https://images.unsplash.com/photo-1562309579-eb9f0b2128e8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTd8fGthcm5hdGFrYSUyMGZhcm1pbmclMjBmcmVlJTIwa2hhbGklMjBsYW5kJTIwaW1hZ2VzfGVufDB8fDB8fHww", title: "Karnataka", detail: "600 Acres" },
 ];
 
 const landRent = [
-  { img: "src/Images/7.webp", title: "Gujarat", detail: "Available - 400 Acres" },
-  { img: "src/Images/8.jpg", title: "Rajasthan", detail: "Pre-Book - 350 Acres" },
-  { img: "src/Images/7.webp", title: "Gujarat", detail: "Available - 400 Acres" },
-  { img: "src/Images/8.jpg", title: "Rajasthan", detail: "Pre-Book - 350 Acres" },
-  { img: "src/Images/7.webp", title: "Gujarat", detail: "Available - 400 Acres" },
-  { img: "src/Images/8.jpg", title: "Rajasthan", detail: "Pre-Book - 350 Acres" },
+  { img: "https://images.unsplash.com/photo-1731361183753-92449577ad30?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZmFybWluZyUyMGxhbmRzJTIwaW1hZ2VzfGVufDB8fDB8fHww", title: "Gujarat", detail: "Available - 400 Acres" },
+  { img: "https://images.unsplash.com/photo-1714894323720-b31ab28da649?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGZhcm1pbmclMjBsYW5kcyUyMGltYWdlcyUyMGluJTIwaW5kaWF8ZW58MHx8MHx8fDA%3D", title: "Rajasthan", detail: "Pre-Book - 350 Acres" },
+  { img: "https://images.unsplash.com/photo-1562309579-eb9f0b2128e8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGZhcm1pbmclMjBsYW5kcyUyMGltYWdlcyUyMGluJTIwaW5kaWF8ZW58MHx8MHx8fDA%3D", title: "Gujarat", detail: "Available - 400 Acres" },
+  { img: "https://images.unsplash.com/photo-1583480652564-bd6a6f2210c6?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTB8fGZhcm1pbmclMjBsYW5kcyUyMGltYWdlcyUyMGluJTIwaW5kaWF8ZW58MHx8MHx8fDA%3D", title: "Rajasthan", detail: "Pre-Book - 350 Acres" },
+  { img: "https://images.unsplash.com/photo-1660984428310-55f1bed78008?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NjJ8fGZhcm1pbmclMjBsYW5kcyUyMGltYWdlcyUyMGluJTIwaW5kaWF8ZW58MHx8MHx8fDA%3D", title: "Gujarat", detail: "Available - 400 Acres" },
+  { img: "https://images.unsplash.com/photo-1747025282912-13a3b6247256?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTE1fHxmYXJtaW5nJTIwbGFuZHMlMjBpbWFnZXMlMjBpbiUyMGluZGlhfGVufDB8fDB8fHww", title: "Rajasthan", detail: "Pre-Book - 350 Acres" },
 ];
 
 const products = [
-  { img: "src/Images/manual-0102p-dual-samie-original-imah6y6fmaccwcye.webp", title: "Power Tiller", detail: "₹1,50,000" },
-  { img: "src/Images/2-pcs-gardening-pruner-heavy-roll-cutter-2-asgardening-original-imah4qj9xzpfmcmm.webp", title: "Prunning Shears", detail: "₹1,000" },
-  { img: "src/Images/8-mw06901-10-farm-cult-original-imag75vmfrxvmpev.webp", title: "Hand Weeder", detail: "₹400" },
+  { img: "https://images.unsplash.com/photo-1623513548172-60a045643ebf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8ZmFybWluZyUyMGVxdWlwbWV0JTIwcG93ZXIlMjB0aWxsZXIlMjBpbiUyMGluZGlhfGVufDB8fDB8fHww", title: "Power Tiller", detail: "₹1,50,000" },
+  { img: "https://images.unsplash.com/photo-1739444298506-7cff79291b81?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZmFybWluZyUyMGVxdWlwbWVudHN8ZW58MHx8MHx8fDA%3D", title: "Tracter", detail: "₹1,00000" },
+  { img: "https://images.unsplash.com/photo-1749592218742-959931bb00fa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nzd8fGZhcm1pbmclMjBlcXVpcG1lbnRzfGVufDB8fDB8fHww", title: "Weeder", detail: "₹40,000" },
 ];
 
 export default Dashboard;

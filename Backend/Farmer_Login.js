@@ -522,7 +522,7 @@ app.get('/api/negotiations', authenticate, async (req, res) => {
   // console.log("negotiation check");
   try {
     // console.log("User  -> ",req.userId);
-    const negotiations = await Negotiation.find({ farmer: "67e055237071a2bd8f9fad7b" })
+    const negotiations = await Negotiation.find({ farmer: "67e1003bb9ec252c052f44de" })
       .populate('buyerId', 'fName lName email')
       .populate('contractId', 'title price')
       .sort({ createdAt: -1 });

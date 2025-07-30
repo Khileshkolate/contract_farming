@@ -35,6 +35,8 @@ const BuyerDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+   const [proposedPrice, setProposedPrice] = useState('');
+   const [negotiations, setNegotiations] = useState([]);
   const [negotiationRequests, setNegotiationRequests] = useState([
     {
       id: 1,
@@ -55,21 +57,24 @@ const BuyerDashboard = () => {
   ]);
 
   const fetchWithAuth = async (url, options = {}) => {
-    const token = localStorage.getItem('buyerToken');
-    if (!token) {
-      window.location.href = '/login';
-      return;
-    }
+  const token = localStorage.getItem('buyerToken');
+  if (!token) {
+    window.location.href = '/login';
+    return;
+  }
 
-    try {
-      const response = await fetch(`${link}${url}`, {
-        ...options,
-        headers: {
-          ...options.headers,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+  try {
+    // Fix URL construction
+    const fullUrl = `${link}${link.endsWith('/') ? '' : '/'}${url.replace(/^\//, '')}`;
+    
+    const response = await fetch(fullUrl, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
       if (response.status === 401) {
         localStorage.removeItem('buyerToken');
@@ -130,29 +135,28 @@ const BuyerDashboard = () => {
     }
   };
 
-  const sendNegotiation = async () => {
-    try {
-      if (!selectedContract?._id || !negotiationMessage.trim()) {
-        setNotification("Please select a contract and enter a message");
-        return;
-      }
+ // Update the sendNegotiation function
+const sendNegotiation = async () => {
+  try {
+    // Use fetchWithAuth for consistency
+    await fetchWithAuth('/api/buyer/negotiations', {
+      method: 'POST',
+      body: JSON.stringify({
+        contractId: selectedContract._id,
+        message: negotiationMessage,
+        proposedPrice: Number(proposedPrice)
+      })
+    });
 
-      const response = await fetchWithAuth('/api/negotiations', {
-        method: 'POST',
-        body: JSON.stringify({
-          contractId: selectedContract._id,
-          message: negotiationMessage
-        })
-      });
-
-      setNotification('Negotiation sent successfully!');
-      setNegotiationMessage('');
-      setSelectedContract(null);
-
-    } catch (error) {
-      setNotification(error.message || 'Failed to send negotiation');
-    }
-  };
+    // Reset form
+    setNegotiationMessage('');
+    setProposedPrice('');
+    setSelectedContract(null);
+    setNotification('Negotiation sent successfully!');
+  } catch (error) {
+    setNotification('Failed to send negotiation: ' + error.message);
+  }
+};
 
   const handleCartAction = (contract) => {
     setCartItems(prev => {
@@ -188,6 +192,7 @@ const BuyerDashboard = () => {
     };
     checkAuthAndFetch();
   }, []);
+  
 
   const ImageScanner = () => (
     <div className="p-6 text-center">
@@ -878,6 +883,8 @@ const BuyerDashboard = () => {
         </div>
       )}
 
+      
+
       {selectedContract && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 sm:p-8 w-full max-w-sm sm:max-w-md lg:max-w-2xl relative shadow-lg animate-scale-in">
@@ -910,15 +917,30 @@ const BuyerDashboard = () => {
                   <p><strong>Quality:</strong> {selectedContract.quality || 'Standard'}</p>
                  
                 </div>
-                <div className="mt-4">
-                  <h3 className="text-gray-800 font-medium mb-2">Send Negotiation</h3>
-                  <textarea
-                    value={negotiationMessage}
-                    onChange={(e) => setNegotiationMessage(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-blue-400"
-                    placeholder="Type your negotiation message..."
-                    rows="3"
-                  />
+                 <div className="mt-4">
+        <h3 className="text-gray-800 font-medium mb-2">Send Negotiation</h3>
+        
+        {/* ADD THIS INPUT FOR PRICE */}
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Proposed Price (₹)
+          </label>
+          <input
+            type="number"
+            value={proposedPrice}
+            onChange={(e) => setProposedPrice(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter your proposed price"
+          />
+        </div>
+        
+        <textarea
+          value={negotiationMessage}
+          onChange={(e) => setNegotiationMessage(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-md text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-blue-400"
+          placeholder="Type your negotiation message..."
+          rows="3"
+        />
                   <div className="flex gap-3 mt-4">
                     <button
                       onClick={viewAllDetails}

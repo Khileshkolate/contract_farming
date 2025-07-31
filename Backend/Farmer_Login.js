@@ -806,12 +806,12 @@ const negotiationSchema = new mongoose.Schema({
   },
   farmer: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
+    ref: 'User',  // CHANGED FROM 'Farmer' to 'User'
     required: true 
   },
   proposedPrice: { 
     type: Number, 
-    required: true  // Make required
+    required: true
   },
   message: { 
     type: String, 
@@ -819,11 +819,12 @@ const negotiationSchema = new mongoose.Schema({
   },
   status: { 
     type: String, 
-    enum: ['Pending', 'Accepted', 'Rejected'], 
-    default: 'Pending' 
+    enum: ['pending', 'accepted', 'rejected'], // CHANGED TO LOWERCASE
+    default: 'pending' 
   },
   createdAt: { type: Date, default: Date.now }
 });
+
 
 // ==================== MODEL DEFINITIONS ====================
 const User = mongoose.model("User", userSchema);
@@ -1445,6 +1446,126 @@ router.post('/api/buyer/negotiations', authenticate, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+
+// ==================== NEGOTIATION ENDPOINTS ====================
+app.post("/api/buyer/negotiations", authenticate, requireRole('buyer'), async (req, res) => {
+  try {
+    const { contractId, message, proposedPrice } = req.body;
+    
+    // Validate input
+    if (!contractId || !message || !proposedPrice) {
+      return res.status(400).json({ 
+        message: "Missing required fields: contractId, message, or proposedPrice" 
+      });
+    }
+
+    // Validate contractId format
+    if (!mongoose.Types.ObjectId.isValid(contractId)) {
+      return res.status(400).json({ message: "Invalid contract ID format" });
+    }
+
+    const contract = await Contract.findById(contractId);
+    if (!contract) {
+      return res.status(404).json({ message: "Contract not found" });
+    }
+
+    // Validate farmer exists on contract
+    if (!contract.farmer || !mongoose.Types.ObjectId.isValid(contract.farmer)) {
+      return res.status(400).json({ 
+        message: "Contract is missing a valid farmer reference" 
+      });
+    }
+
+    // Verify farmer exists in database
+    const farmerExists = await User.exists({ _id: contract.farmer });
+    if (!farmerExists) {
+      return res.status(400).json({ message: "Farmer associated with contract not found" });
+    }
+
+    // Create negotiation with all required fields
+    const negotiation = new Negotiation({
+      contractId,
+      buyerId: req.user._id,
+      farmer: contract.farmer,
+      message,
+      proposedPrice,
+      status: "pending"
+    });
+
+    await negotiation.save();
+    
+    // Return the created negotiation with populated data
+    const result = await Negotiation.findById(negotiation._id)
+      .populate('buyerId', 'fName lName email')
+      .populate('farmer', 'fName lName email')
+      .populate('contractId', 'title price');
+
+    res.status(201).json(result);
+  } catch (error) {
+    console.error("Negotiation creation error:", error);
+    
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(e => ({
+        field: e.path,
+        message: e.message
+      }));
+      return res.status(400).json({ 
+        message: "Validation failed",
+        errors 
+      });
+    }
+    
+    res.status(500).json({ message: "Failed to create negotiation" });
+  }
+});
+// FIXED status update endpoint
+app.put("/api/negotiations/:id/:action", authenticate, async (req, res) => {
+  try {
+    const { id, action } = req.params;
+    const validActions = ['accept', 'reject']; // REMOVED 'counter' since not in enum
+    
+    if (!validActions.includes(action)) {
+      return res.status(400).json({ message: "Invalid action" });
+    }
+    
+    const negotiation = await Negotiation.findById(id);
+    if (!negotiation) {
+      return res.status(404).json({ message: "Negotiation not found" });
+    }
+    
+    // Update status with LOWERCASE values
+    negotiation.status = action === 'accept' ? 'accepted' : 'rejected';
+    
+    await negotiation.save();
+    res.json(negotiation);
+  } catch (error) {
+    console.error("Negotiation update error:", error);
+    res.status(500).json({ message: "Failed to update negotiation" });
+  }
+});
+
+
+// ==================== FARMER FETCH ENDPOINT ====================
+app.get("/api/users/farmers", authenticate, async (req, res) => {
+  try {
+    const farmers = await User.find({ role: 'farmer' })
+      .select('fName lName email location image');
+    
+    res.json(farmers.map(farmer => ({
+      _id: farmer._id,
+      name: `${farmer.fName} ${farmer.lName}`,
+      email: farmer.email,
+      location: farmer.location,
+      image: farmer.image
+    })));
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch farmers" });
+  }
+});
+
+
 
 // ==================== PUBLIC MARKETPLACE ROUTES ====================
 app.get("/api/contracts", async (req, res) => {

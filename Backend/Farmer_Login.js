@@ -793,40 +793,6 @@ const equipmentRentSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { collection: 'Equipment Rent' });
 
-// const negotiationSchema = new mongoose.Schema({
-//   contractId: { 
-//     type: mongoose.Schema.Types.ObjectId, 
-//     ref: 'Contract', 
-//     required: true 
-//   },
-//   buyerId: { 
-//     type: mongoose.Schema.Types.ObjectId, 
-//     ref: 'User', 
-//     required: true 
-//   },
-//   farmer: { 
-//     type: mongoose.Schema.Types.ObjectId, 
-//     ref: 'User',  // CHANGED FROM 'Farmer' to 'User'
-//     required: true 
-//   },
-//   proposedPrice: { 
-//     type: Number, 
-//     required: true
-//   },
-//   message: { 
-//     type: String, 
-//     required: true 
-//   },
-//   status: { 
-//     type: String, 
-//     enum: ['pending', 'accepted', 'rejected'], // CHANGED TO LOWERCASE
-//     default: 'pending' 
-//   },
-//   createdAt: { type: Date, default: Date.now }
-// });
-
-
-
 const negotiationSchema = new mongoose.Schema({
   contractId: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -840,7 +806,7 @@ const negotiationSchema = new mongoose.Schema({
   },
   farmer: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
+    ref: 'User',  // CHANGED FROM 'Farmer' to 'User'
     required: true 
   },
   proposedPrice: { 
@@ -853,25 +819,59 @@ const negotiationSchema = new mongoose.Schema({
   },
   status: { 
     type: String, 
-    enum: ['Pending', 'Accepted', 'Rejected', 'Finalized', 'Cancelled'],
-    default: 'Pending' 
+    enum: ['pending', 'accepted', 'rejected'], // CHANGED TO LOWERCASE
+    default: 'pending' 
   },
-  // New fields added
-  location: { type: String, required: true },
-  buyerName: { type: String, required: true },
-  buyerEmail: { type: String, required: true },
-  quantity: { type: Number, required: true },
-  quality: { type: String, required: true },
-  harvestDate: { type: Date, required: true },
-  price: { type: Number, required: true },
-  duration: { type: Number, required: true },
-  startDate: { type: Date, required: true },
-  plantingPeriod: { type: Number, required: true },
-  contractFile: { type: String }, // Path to uploaded contract file
-  deliveryTerms: { type: String, required: true },
-  additionalDescription: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
+
+
+
+// const negotiationSchema = new mongoose.Schema({
+//   contractId: { 
+//     type: mongoose.Schema.Types.ObjectId, 
+//     ref: 'Contract', 
+//     required: true 
+//   },
+//   buyerId: { 
+//     type: mongoose.Schema.Types.ObjectId, 
+//     ref: 'User', 
+//     required: true 
+//   },
+//   farmer: { 
+//     type: mongoose.Schema.Types.ObjectId, 
+//     ref: 'User',
+//     required: true 
+//   },
+//   proposedPrice: { 
+//     type: Number, 
+//     required: true
+//   },
+//   message: { 
+//     type: String, 
+//     required: true 
+//   },
+//   status: { 
+//     type: String, 
+//     enum: ['Pending', 'Accepted', 'Rejected', 'Finalized', 'Cancelled'],
+//     default: 'Pending' 
+//   },
+//   // New fields added
+//   location: { type: String, required: true },
+//   buyerName: { type: String, required: true },
+//   buyerEmail: { type: String, required: true },
+//   quantity: { type: Number, required: true },
+//   quality: { type: String, required: true },
+//   harvestDate: { type: Date, required: true },
+//   price: { type: Number, required: true },
+//   duration: { type: Number, required: true },
+//   startDate: { type: Date, required: true },
+//   plantingPeriod: { type: Number, required: true },
+//   contractFile: { type: String }, // Path to uploaded contract file
+//   deliveryTerms: { type: String, required: true },
+//   additionalDescription: { type: String },
+//   createdAt: { type: Date, default: Date.now }
+// });
 
 
 

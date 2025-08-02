@@ -3,72 +3,58 @@ import { FaSave, FaTimes, FaUpload, FaInfoCircle } from 'react-icons/fa';
 
 const link = import.meta.env.VITE_BACKEND;
 
-const ContractForm = ({ editId, onClose, onContractSaved }) => {
+const ContractForm = ({ contractId, onClose, onContractSaved }) => {
     const [contract, setContract] = useState({
-        contractId: '',
-        name: '',
-        email: '',
-        cropName: '',
-        landArea: '',
-        location: '',
+        title: '',
+        description: '',
+        price: '',
+        duration: '1 year',
+        area: '',
         status: 'Active',
         quantity: '',
         quantityUnit: 'kg',
         quality: 'Standard',
         harvestDate: '',
         deliveryTerms: '',
-        duration: '1 year',
         startDate: 'Immediate',
         plantingPeriod: 'July-September',
-        price: '',
-        description: '',
-        contractFile: null,
+        contractFile: null
     });
+    
     const [error, setError] = useState('');
     const [filePreview, setFilePreview] = useState(null);
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         setIsVisible(true);
-        if (editId) {
-            const fetchContract = async () => {
-                try {
-                    const response = await fetch(`${link}/api/contracts/${editId}`);
-                    if (!response.ok) throw new Error('Failed to fetch contract');
-                    const data = await response.json();
-                    setContract(data);
-                    if (data.contractFilePath) {
-                        setFilePreview(data.contractFilePath.split('/').pop());
-                    }
-                } catch (err) {
-                    setError(err.message);
+        
+        const fetchContract = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${link}/api/contracts/${contractId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch contract');
+                const data = await response.json();
+                
+                setContract({
+                    ...data,
+                    harvestDate: data.harvestDate ? new Date(data.harvestDate).toISOString().split('T')[0] : ''
+                });
+                
+                if (data.contractFile) {
+                    setFilePreview(data.contractFile.split('/').pop());
                 }
-            };
+            } catch (err) {
+                setError(err.message);
+            }
+        };
+
+        if (contractId) {
             fetchContract();
-        } else {
-            setContract({
-                contractId: '',
-                name: '',
-                email: '',
-                cropName: '',
-                landArea: '',
-                location: '',
-                status: 'Active',
-                quantity: '',
-                quantityUnit: 'kg',
-                quality: 'Standard',
-                harvestDate: '',
-                deliveryTerms: '',
-                duration: '1 year',
-                startDate: 'Immediate',
-                plantingPeriod: 'July-September',
-                price: '',
-                description: '',
-                contractFile: null,
-            });
-            setFilePreview(null);
         }
-    }, [editId]);
+    }, [contractId]);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
@@ -80,46 +66,57 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
 
-        const formData = new FormData();
-        for (const key in contract) {
-            if (key === 'contractFile' && contract[key]) {
-                formData.append(key, contract[key]);
-            } else if (key !== 'contractFile') {
-                formData.append(key, contract[key]);
-            }
-        }
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Authentication token missing');
 
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) throw new Error('Authentication token missing');
+    const formData = new FormData();
+    
+    // Append all fields
+    formData.append('title', contract.title);
+    formData.append('description', contract.description);
+    formData.append('price', contract.price);
+    formData.append('duration', contract.duration);
+    formData.append('area', contract.area);
+    formData.append('status', contract.status);
+    formData.append('quantity', contract.quantity);
+    formData.append('quantityUnit', contract.quantityUnit);
+    formData.append('quality', contract.quality);
+    formData.append('harvestDate', contract.harvestDate);
+    formData.append('deliveryTerms', contract.deliveryTerms);
+    formData.append('startDate', contract.startDate);
+    formData.append('plantingPeriod', contract.plantingPeriod);
+    
+    // Only append file if it's a new file
+    if (contract.contractFile instanceof File) {
+      formData.append('contractFile', contract.contractFile);
+    }
 
-            const method = editId ? 'PUT' : 'POST';
-            const url = editId 
-                ? `${link}/api/contracts/${editId}`
-                : `${link}/api/contracts`;
+    const response = await fetch(`${link}/api/contracts/${contractId}`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
 
-            const response = await fetch(url, {
-                method,
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Operation failed');
+    }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Operation failed');
-            }
-
-            alert(`Contract ${editId ? 'updated' : 'created'} successfully!`);
-            if (onContractSaved) onContractSaved();
-            onClose();
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+    alert('Contract updated successfully!');
+    if (onContractSaved) onContractSaved();
+    onClose();
+  } catch (err) {
+    console.error("Update error:", err);
+    setError(err.message || "Failed to update contract");
+  }
+};
 
     const handleClose = () => {
         setIsVisible(false);
@@ -143,7 +140,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
             >
                 <div className="bg-green-800 text-white p-4 flex justify-between items-center">
                     <h2 className="text-lg md:text-xl font-bold">
-                        {editId ? 'Edit Contract Details' : 'Add Contract Information'}
+                        Edit Contract Details
                     </h2>
                     <button 
                         onClick={handleClose} 
@@ -165,43 +162,13 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <div>
                                 <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                    Contract ID*
+                                    Contract ID
                                 </label>
                                 <input
                                     type="text"
-                                    name="contractId"
-                                    value={contract.contractId}
-                                    onChange={handleChange}
-                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                    Name*
-                                </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={contract.name}
-                                    onChange={handleChange}
-                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                    Email*
-                                </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={contract.email}
-                                    onChange={handleChange}
-                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                    required
+                                    value={contractId}
+                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base bg-gray-100"
+                                    readOnly
                                 />
                             </div>
 
@@ -211,8 +178,8 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 </label>
                                 <input
                                     type="text"
-                                    name="cropName"
-                                    value={contract.cropName}
+                                    name="title"
+                                    value={contract.title || ''}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     required
@@ -225,22 +192,8 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 </label>
                                 <input
                                     type="text"
-                                    name="landArea"
-                                    value={contract.landArea}
-                                    onChange={handleChange}
-                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                    Location*
-                                </label>
-                                <input
-                                    type="text"
-                                    name="location"
-                                    value={contract.location}
+                                    name="area"
+                                    value={contract.area || ''}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     required
@@ -253,7 +206,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 </label>
                                 <select
                                     name="status"
-                                    value={contract.status}
+                                    value={contract.status || 'Active'}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     required
@@ -273,7 +226,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                     <input
                                         type="number"
                                         name="quantity"
-                                        value={contract.quantity}
+                                        value={contract.quantity || ''}
                                         onChange={handleChange}
                                         className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                         required
@@ -285,7 +238,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                     </label>
                                     <select
                                         name="quantityUnit"
-                                        value={contract.quantityUnit}
+                                        value={contract.quantityUnit || 'kg'}
                                         onChange={handleChange}
                                         className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     >
@@ -304,7 +257,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 </label>
                                 <select
                                     name="quality"
-                                    value={contract.quality}
+                                    value={contract.quality || 'Standard'}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     required
@@ -322,7 +275,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 </label>
                                 <select
                                     name="duration"
-                                    value={contract.duration}
+                                    value={contract.duration || '1 year'}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     required
@@ -341,7 +294,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 <input
                                     type="number"
                                     name="price"
-                                    value={contract.price}
+                                    value={contract.price || ''}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     required
@@ -349,14 +302,12 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                             </div>
                         </div>
 
-                        {/* Additional Details Section */}
                         <div className="bg-white rounded-2xl shadow-xl p-6 overflow-hidden mb-4 border border-gray-200">
                             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
                                 <FaInfoCircle className="mr-2 text-green-600" /> Additional Details
                             </h3>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Left Column */}
                                 <div>
                                     <div className="mb-4">
                                         <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
@@ -365,7 +316,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                         <input
                                             type="date"
                                             name="harvestDate"
-                                            value={contract.harvestDate}
+                                            value={contract.harvestDate || ''}
                                             onChange={handleChange}
                                             className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                         />
@@ -377,7 +328,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                         </label>
                                         <select
                                             name="startDate"
-                                            value={contract.startDate}
+                                            value={contract.startDate || 'Immediate'}
                                             onChange={handleChange}
                                             className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                             required
@@ -395,7 +346,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                         </label>
                                         <select
                                             name="plantingPeriod"
-                                            value={contract.plantingPeriod}
+                                            value={contract.plantingPeriod || 'July-September'}
                                             onChange={handleChange}
                                             className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                             required
@@ -409,7 +360,6 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                     </div>
                                 </div>
                                 
-                                {/* Right Column */}
                                 <div>
                                     <div className="mb-4">
                                         <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
@@ -448,7 +398,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                         </label>
                                         <textarea
                                             name="deliveryTerms"
-                                            value={contract.deliveryTerms}
+                                            value={contract.deliveryTerms || ''}
                                             onChange={handleChange}
                                             className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                             rows="2"
@@ -457,14 +407,13 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 </div>
                             </div>
                             
-                            {/* Additional Description */}
                             <div className="mt-4">
                                 <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
                                     Additional Description
                                 </label>
                                 <textarea
                                     name="description"
-                                    value={contract.description}
+                                    value={contract.description || ''}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     rows="3"
@@ -485,7 +434,7 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center gap-2 transition-colors text-sm md:text-base"
                             >
                                 <FaSave className="text-sm md:text-base" />
-                                {editId ? 'Update Contract' : 'Save Contract'}
+                                Update Contract
                             </button>
                         </div>
                     </form>

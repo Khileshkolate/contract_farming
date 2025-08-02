@@ -484,16 +484,14 @@
 
 
 
-// FarmerDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
 import LandsSection from './LandsSection.jsx';    
 import EquipmentSection from './EquipmentSection';
 import LandsSectionRent from './LandsSectionRent';
 import Footer from './Footer';
 import ContractForm from './ContractForm';
-import Header from './Header'; // Import the new header
+import Header from './Header';
 
 const link = import.meta.env.VITE_BACKEND;
 
@@ -529,38 +527,19 @@ const Card = ({ id, image, title, area, price, status, actionText, onDelete, onE
 
 const FarmerDashboard = () => {
     const [contracts, setContracts] = useState([]);
-    const [availableLands, setAvailableLands] = useState([]);
-    const [rentLands, setRentLands] = useState([]);
-    const [products, setProducts] = useState([]);
-    const [equipment, setEquipment] = useState([]);
     const [showAll, setShowAll] = useState({ contracts: false });
-    const [formData, setFormData] = useState({ image: '', title: '', area: '' });
+    const [formData, setFormData] = useState({ 
+        image: '', 
+        title: '', 
+        area: '',
+        price: ''
+    });
     const [editId, setEditId] = useState(null);
     const [showContractForm, setShowContractForm] = useState(false);
     const [editingContractId, setEditingContractId] = useState(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchData = async (endpoint, setter) => {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${link}/api/${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setter(data);
-                }
-            } catch (error) {
-                console.error(`Error fetching ${endpoint}:`, error);
-            }
-        };
-
-        fetchData('contracts', setContracts);
-        fetchData('lands', setAvailableLands);
-        fetchData('rents', setRentLands);
-        fetchData('products', setProducts);
-        fetchData('equipment', setEquipment);
+        fetchContracts();
     }, []);
 
     const fetchContracts = async () => {
@@ -593,8 +572,15 @@ const FarmerDashboard = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({
+                    ...formData,
+                    price: Number(formData.price)
+                })
             });
+
+            if (!response.ok) {
+                throw new Error('Failed to save contract');
+            }
 
             const data = await response.json();
             
@@ -606,10 +592,12 @@ const FarmerDashboard = () => {
                 setContracts(prev => [...prev, data]);
             }
 
-            setFormData({ image: '', title: '', area: '' });
+            setFormData({ image: '', title: '', area: '', price: '' });
             setEditId(null);
+            fetchContracts();
         } catch (error) {
             console.error('Form submission error:', error);
+            alert(`Error: ${error.message}`);
         }
     };
 
@@ -617,13 +605,19 @@ const FarmerDashboard = () => {
         if (window.confirm('Are you sure you want to delete this contract?')) {
             try {
                 const token = localStorage.getItem('token');
-                await fetch(`${link}/api/contracts/${id}`, {
+                const response = await fetch(`${link}/api/contracts/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete contract');
+                }
+                
                 setContracts(prev => prev.filter(contract => contract._id !== id));
             } catch (error) {
                 console.error('Delete error:', error);
+                alert(`Error: ${error.message}`);
             }
         }
     };
@@ -632,7 +626,8 @@ const FarmerDashboard = () => {
         setFormData({
             image: contract.image,
             title: contract.title,
-            area: contract.area
+            area: contract.area,
+            price: contract.price
         });
         setEditId(contract._id);
     };
@@ -648,7 +643,7 @@ const FarmerDashboard = () => {
 
     return (
         <div className="bg-gray-100 min-h-screen w-full">
-            <Header /> {/* Use the new header component */}
+            <Header />
             <main className="py-6 px-4 w-full">
                 <section className="w-full bg-green-800 text-white text-center py-10 rounded-md shadow-lg mb-3">
                     <h2 className="text-3xl font-bold">Get Assured Prices For Your Produce With Contract Farming</h2>
@@ -730,6 +725,15 @@ const FarmerDashboard = () => {
                                 className="w-full p-3 border border-gray-300 rounded text-sm md:text-base focus:ring-2 focus:ring-green-600"
                                 required
                             />
+                            <input
+                                type="number"
+                                placeholder="Price (₹)"
+                                name="price"
+                                value={formData.price}
+                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                className="w-full p-3 border border-gray-300 rounded text-sm md:text-base focus:ring-2 focus:ring-green-600"
+                                required
+                            />
                         </div>
                         <button 
                             type="submit" 
@@ -741,7 +745,7 @@ const FarmerDashboard = () => {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setFormData({ image: '', title: '', area: '' });
+                                    setFormData({ image: '', title: '', area: '', price: '' });
                                     setEditId(null);
                                 }}
                                 className="w-full bg-gray-500 text-white py-3 rounded hover:bg-gray-600 transition text-sm md:text-base font-semibold mt-2"
@@ -760,7 +764,7 @@ const FarmerDashboard = () => {
 
             {showContractForm && (
                 <ContractForm 
-                    editId={editingContractId}
+                    contractId={editingContractId}
                     onClose={() => setShowContractForm(false)}
                     onContractSaved={fetchContracts}
                 />
@@ -770,12 +774,6 @@ const FarmerDashboard = () => {
 };
 
 export default FarmerDashboard;
-
-
-
-
-
-
 
 
 

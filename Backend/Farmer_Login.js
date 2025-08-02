@@ -683,6 +683,14 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from 'fs';
+import { promises as fsPromises } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const router = express.Router();
@@ -709,6 +717,33 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
 }));
+
+const uploadsDir = path.join(__dirname, 'uploads');
+
+// Create directory if it doesn't exist
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log(`Created uploads directory at ${uploadsDir}`);
+}
+
+// Multer Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);  // Use the verified directory
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==================== DATABASE CONNECTION ====================
 mongoose.set('strictPopulate', false);
@@ -743,13 +778,36 @@ const profileSchema = new mongoose.Schema({
   role: { type: String, enum: ['farmer', 'buyer'], required: true }
 }, { timestamps: true });
 
+// const contractSchema = new mongoose.Schema({
+//   image: String,
+//   title: String,
+//   description: String,
+//   price: Number,
+//   duration: Number,
+//   area: String,
+//   farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+//   createdAt: { type: Date, default: Date.now }
+// });
+
 const contractSchema = new mongoose.Schema({
-  image: String,
-  title: String,
+  title: { type: String, required: true },
   description: String,
-  price: Number,
-  duration: Number,
-  area: String,
+  price: { type: Number, required: true },
+  duration: String,
+  area: { type: String, required: true },
+  status: { 
+    type: String, 
+    enum: ['Active', 'Pending', 'Completed', 'Cancelled'],
+    default: 'Active'
+  },
+  quantity: Number,
+  quantityUnit: String,
+  quality: String,
+  harvestDate: Date,
+  deliveryTerms: String,
+  startDate: String,
+  plantingPeriod: String,
+  contractFile: String,
   farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now }
 });
@@ -824,54 +882,6 @@ const negotiationSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now }
 });
-
-
-
-// const negotiationSchema = new mongoose.Schema({
-//   contractId: { 
-//     type: mongoose.Schema.Types.ObjectId, 
-//     ref: 'Contract', 
-//     required: true 
-//   },
-//   buyerId: { 
-//     type: mongoose.Schema.Types.ObjectId, 
-//     ref: 'User', 
-//     required: true 
-//   },
-//   farmer: { 
-//     type: mongoose.Schema.Types.ObjectId, 
-//     ref: 'User',
-//     required: true 
-//   },
-//   proposedPrice: { 
-//     type: Number, 
-//     required: true
-//   },
-//   message: { 
-//     type: String, 
-//     required: true 
-//   },
-//   status: { 
-//     type: String, 
-//     enum: ['Pending', 'Accepted', 'Rejected', 'Finalized', 'Cancelled'],
-//     default: 'Pending' 
-//   },
-//   // New fields added
-//   location: { type: String, required: true },
-//   buyerName: { type: String, required: true },
-//   buyerEmail: { type: String, required: true },
-//   quantity: { type: Number, required: true },
-//   quality: { type: String, required: true },
-//   harvestDate: { type: Date, required: true },
-//   price: { type: Number, required: true },
-//   duration: { type: Number, required: true },
-//   startDate: { type: Date, required: true },
-//   plantingPeriod: { type: Number, required: true },
-//   contractFile: { type: String }, // Path to uploaded contract file
-//   deliveryTerms: { type: String, required: true },
-//   additionalDescription: { type: String },
-//   createdAt: { type: Date, default: Date.now }
-// });
 
 
 
@@ -1308,6 +1318,96 @@ app.get("/api/farmer/notifications", authenticate, requireRole('farmer'), async 
 
 
 
+app.put("/api/contracts/:id", 
+  authenticate, 
+  requireRole('farmer'),
+  upload.single('contractFile'),  // Handle file uploads
+  async (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        price,
+        duration,
+        area,
+        status,
+        quantity,
+        quantityUnit,
+        quality,
+        harvestDate,
+        deliveryTerms,
+        startDate,
+        plantingPeriod
+      } = req.body;
+
+      // Find contract and verify ownership
+      const contract = await Contract.findById(req.params.id);
+      if (!contract) {
+        return res.status(404).json({ message: "Contract not found" });
+      }
+
+      // Verify farmer owns this contract
+      if (contract.farmer.toString() !== req.userId.toString()) {
+        return res.status(403).json({ message: "Unauthorized to update this contract" });
+      }
+
+      // Prepare updates
+      const updates = {
+        title,
+        description,
+        price: Number(price),
+        duration,
+        area,
+        status,
+        quantity: Number(quantity),
+        quantityUnit,
+        quality,
+        harvestDate,
+        deliveryTerms,
+        startDate,
+        plantingPeriod
+      };
+
+      // Handle file upload if present
+      if (req.file) {
+        // Delete old file if exists
+        if (contract.contractFile) {
+          const oldFilePath = path.join(__dirname, contract.contractFile);
+          try {
+            await fsPromises.unlink(oldFilePath);
+          } catch (err) {
+            console.warn(`Could not delete old file: ${oldFilePath}`);
+          }
+        }
+        
+        // Save new file path
+        updates.contractFile = `/uploads/${req.file.filename}`;
+      }
+
+      // Apply updates
+      const updatedContract = await Contract.findByIdAndUpdate(
+        req.params.id,
+        updates,
+        { new: true }
+      );
+
+      res.json(updatedContract);
+    } catch (error) {
+      console.error("Contract update error:", error);
+      
+      // Handle specific errors
+      if (error.name === 'CastError') {
+        return res.status(400).json({ message: "Invalid data format" });
+      }
+      
+      res.status(500).json({ message: "Failed to update contract" });
+    }
+  }
+);
+
+
+
+
 // ==================== BUYER ROUTES ====================
 app.get("/api/buyer/contracts", authenticate, requireRole('buyer'), async (req, res) => {
   try {
@@ -1628,6 +1728,21 @@ app.get("/api/contracts", async (req, res) => {
     res.json(contracts);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch contracts" });
+  }
+});
+
+app.get("/api/contracts/:id", async (req, res) => {
+  try {
+    const contract = await Contract.findById(req.params.id)
+      .populate('farmer', 'fName lName email');
+    
+    if (!contract) {
+      return res.status(404).json({ message: "Contract not found" });
+    }
+    
+    res.json(contract);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch contract" });
   }
 });
 

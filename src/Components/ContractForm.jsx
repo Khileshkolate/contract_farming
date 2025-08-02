@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaSave, FaTimes, FaUpload } from 'react-icons/fa';
+import { FaSave, FaTimes, FaUpload, FaInfoCircle } from 'react-icons/fa';
 
 const link = import.meta.env.VITE_BACKEND;
 
@@ -128,7 +128,6 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
-            {/* Solid Black Background Overlay */}
             <div 
                 className={`fixed inset-0 bg-black transition-opacity duration-300 ${
                     isVisible ? 'opacity-100' : 'opacity-0'
@@ -136,7 +135,6 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                 onClick={handleClose}
             />
             
-            {/* Responsive Modal Container */}
             <div 
                 className={`relative bg-white rounded-lg shadow-xl w-full max-w-4xl overflow-hidden border-4 border-green-800 transform transition-all duration-300 ${
                     isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
@@ -165,7 +163,6 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
 
                     <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            {/* Form Fields */}
                             <div>
                                 <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
                                     Contract ID*
@@ -202,6 +199,34 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                                     type="email"
                                     name="email"
                                     value={contract.email}
+                                    onChange={handleChange}
+                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                    Crop Name*
+                                </label>
+                                <input
+                                    type="text"
+                                    name="cropName"
+                                    value={contract.cropName}
+                                    onChange={handleChange}
+                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                    Land Area*
+                                </label>
+                                <input
+                                    type="text"
+                                    name="landArea"
+                                    value={contract.landArea}
                                     onChange={handleChange}
                                     className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
                                     required
@@ -293,19 +318,6 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
 
                             <div>
                                 <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                    Harvest Date
-                                </label>
-                                <input
-                                    type="date"
-                                    name="harvestDate"
-                                    value={contract.harvestDate}
-                                    onChange={handleChange}
-                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
                                     Duration*
                                 </label>
                                 <select
@@ -324,43 +336,6 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
 
                             <div>
                                 <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                    Start Date*
-                                </label>
-                                <select
-                                    name="startDate"
-                                    value={contract.startDate}
-                                    onChange={handleChange}
-                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                    required
-                                >
-                                    <option value="Immediate">Immediate</option>
-                                    <option value="Next month">Next month</option>
-                                    <option value="Next season">Next season</option>
-                                    <option value="Custom Date">Custom Date</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                    Planting Period*
-                                </label>
-                                <select
-                                    name="plantingPeriod"
-                                    value={contract.plantingPeriod}
-                                    onChange={handleChange}
-                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                    required
-                                >
-                                    <option value="July-September">July-September</option>
-                                    <option value="October-December">October-December</option>
-                                    <option value="January-March">January-March</option>
-                                    <option value="April-June">April-June</option>
-                                    <option value="Year-round">Year-round</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
                                     Price (₹)*
                                 </label>
                                 <input
@@ -374,61 +349,127 @@ const ContractForm = ({ editId, onClose, onContractSaved }) => {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                Upload Contract (PDF/Image)
-                            </label>
-                            <div className="flex items-center">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                                        <p className="mb-1 text-sm text-gray-500">
-                                            <span className="font-semibold">Click to upload</span>
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            PDF, JPG, or PNG (MAX. 10MB)
-                                        </p>
+                        {/* Additional Details Section */}
+                        <div className="bg-white rounded-2xl shadow-xl p-6 overflow-hidden mb-4 border border-gray-200">
+                            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
+                                <FaInfoCircle className="mr-2 text-green-600" /> Additional Details
+                            </h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Column */}
+                                <div>
+                                    <div className="mb-4">
+                                        <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                            Harvest Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="harvestDate"
+                                            value={contract.harvestDate}
+                                            onChange={handleChange}
+                                            className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
+                                        />
                                     </div>
-                                    <input 
-                                        type="file" 
-                                        name="contractFile"
-                                        onChange={handleChange}
-                                        accept=".pdf, .jpg, .jpeg, .png"
-                                        className="hidden" 
-                                    />
-                                </label>
+                                    
+                                    <div className="mb-4">
+                                        <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                            Start Date*
+                                        </label>
+                                        <select
+                                            name="startDate"
+                                            value={contract.startDate}
+                                            onChange={handleChange}
+                                            className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
+                                            required
+                                        >
+                                            <option value="Immediate">Immediate</option>
+                                            <option value="Next month">Next month</option>
+                                            <option value="Next season">Next season</option>
+                                            <option value="Custom Date">Custom Date</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="mb-4">
+                                        <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                            Planting Period*
+                                        </label>
+                                        <select
+                                            name="plantingPeriod"
+                                            value={contract.plantingPeriod}
+                                            onChange={handleChange}
+                                            className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
+                                            required
+                                        >
+                                            <option value="July-September">July-September</option>
+                                            <option value="October-December">October-December</option>
+                                            <option value="January-March">January-March</option>
+                                            <option value="April-June">April-June</option>
+                                            <option value="Year-round">Year-round</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                {/* Right Column */}
+                                <div>
+                                    <div className="mb-4">
+                                        <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                            Upload Contract (PDF/Image)
+                                        </label>
+                                        <div className="flex items-center">
+                                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
+                                                    <p className="mb-1 text-sm text-gray-500">
+                                                        <span className="font-semibold">Click to upload</span>
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        PDF, JPG, or PNG (MAX. 10MB)
+                                                    </p>
+                                                </div>
+                                                <input 
+                                                    type="file" 
+                                                    name="contractFile"
+                                                    onChange={handleChange}
+                                                    accept=".pdf, .jpg, .jpeg, .png"
+                                                    className="hidden" 
+                                                />
+                                            </label>
+                                        </div>
+                                        {filePreview && (
+                                            <p className="text-gray-600 text-xs md:text-sm mt-2">
+                                                Selected file: {filePreview}
+                                            </p>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="mb-4">
+                                        <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                            Delivery Terms
+                                        </label>
+                                        <textarea
+                                            name="deliveryTerms"
+                                            value={contract.deliveryTerms}
+                                            onChange={handleChange}
+                                            className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
+                                            rows="2"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            {filePreview && (
-                                <p className="text-gray-600 text-xs md:text-sm mt-2">
-                                    Selected file: {filePreview}
-                                </p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                Delivery Terms
-                            </label>
-                            <textarea
-                                name="deliveryTerms"
-                                value={contract.deliveryTerms}
-                                onChange={handleChange}
-                                className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                rows="3"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
-                                Additional Description
-                            </label>
-                            <textarea
-                                name="description"
-                                value={contract.description}
-                                onChange={handleChange}
-                                className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
-                                rows="3"
-                            />
+                            
+                            {/* Additional Description */}
+                            <div className="mt-4">
+                                <label className="block text-gray-700 mb-1 md:mb-2 text-sm md:text-base">
+                                    Additional Description
+                                </label>
+                                <textarea
+                                    name="description"
+                                    value={contract.description}
+                                    onChange={handleChange}
+                                    className="w-full p-2 md:p-3 border border-gray-300 rounded text-sm md:text-base"
+                                    rows="3"
+                                />
+                            </div>
                         </div>
 
                         <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">

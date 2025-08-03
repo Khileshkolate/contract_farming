@@ -231,7 +231,15 @@ const link = import.meta.env.VITE_BACKEND;
 
 const Farmer_Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({ email: "", password: "", fName: "", lName: "" });
+  // const [formData, setFormData] = useState({ email: "", password: "", fName: "", lName: "" });
+
+    const [formData, setFormData] = useState({ 
+    email: "", 
+    password: "", 
+    fName: "", 
+    lName: "",
+    role: "farmer" // Default role for farmer portal
+  });
   const [error, setError] = useState("");
   const [signupSuccess, setSignupSuccess] = useState(false);
   const navigate = useNavigate();
@@ -240,18 +248,26 @@ const Farmer_Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  // 
+  
+   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
+    
+    // Add role to payload
+    const payload = { ...formData };
+    if (isSignUp) {
+      payload.role = "farmer";
+    }
 
 
     try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();

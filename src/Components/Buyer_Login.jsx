@@ -276,7 +276,16 @@ const link = import.meta.env.VITE_BACKEND;
 
 const Buyer_Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({ email: "", password: "", fName: "", lName: "" });
+  // const [formData, setFormData] = useState({ email: "", password: "", fName: "", lName: "" });
+
+  const [formData, setFormData] = useState({ 
+    email: "", 
+    password: "", 
+    fName: "", 
+    lName: "",
+    role: "buyer" // Default role for buyer portal
+  });
+
   const [error, setError] = useState("");
   const [signupSuccess, setSignupSuccess] = useState(false);
   const navigate = useNavigate();
@@ -287,18 +296,41 @@ const Buyer_Login = () => {
   };
 
   // Handle form submission
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError("");
+
+  //   const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
+
+  //   try {
+  //     const response = await fetch(endpoint, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(formData),
+  //     });
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
     
+<<<<<<< HEAD
+=======
+    // Add role to payload
+    const payload = { ...formData };
+    if (isSignUp) {
+      payload.role = "buyer";
+    }
+>>>>>>> newtest
 
     try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();

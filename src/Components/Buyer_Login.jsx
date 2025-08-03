@@ -292,6 +292,7 @@ const Buyer_Login = () => {
     setError("");
 
     const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
+    
 
     try {
       const response = await fetch(endpoint, {

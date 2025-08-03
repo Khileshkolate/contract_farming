@@ -246,6 +246,7 @@ const Farmer_Login = () => {
 
     const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
 
+
     try {
       const response = await fetch(endpoint, {
         method: "POST",

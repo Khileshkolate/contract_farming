@@ -883,6 +883,38 @@ const negotiationSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const dealSchema = new mongoose.Schema({
+  contractId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Contract', 
+    required: true 
+  },
+  farmer: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  buyer: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  finalizedPrice: { 
+    type: Number, 
+    required: true 
+  },
+  finalizedAt: { 
+    type: Date, 
+    default: Date.now 
+  },
+  status: { 
+    type: String, 
+    enum: ['Ongoing', 'Completed', 'Cancelled'],
+    default: 'Ongoing'
+  }
+});
+
+const Deal = mongoose.model('Deal', dealSchema);
 
 
 
@@ -920,6 +952,10 @@ const requireRole = (role) => (req, res, next) => {
   }
   next();
 };
+
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
 // ==================== AUTHENTICATION ROUTES ====================
 // app.post("/api/signup", async (req, res) => {
@@ -1436,119 +1472,6 @@ app.get("/api/buyer/contracts", authenticate, requireRole('buyer'), async (req, 
   }
 });
 
-// app.post("/api/buyer/negotiations", authenticate, requireRole('buyer'), async (req, res) => {
-//   try {
-//     const { contractId, message, proposedPrice } = req.body;
-//     const contract = await Contract.findById(contractId);
-    
-//     if (!contract) {
-//       return res.status(404).json({ message: "Contract not found" });
-//     }
-    
-//     const negotiation = new Negotiation({
-//       contractId,
-//       buyerId: req.user._id,
-//       farmer: contract.farmer,
-//       message,
-//       proposedPrice,
-//       status: "Pending"
-//     });
-
-//     await negotiation.save();
-    
-//     const result = await Negotiation.findById(negotiation._id)
-//       .populate('buyerId', 'fName lName email')
-//       .populate('farmer', 'fName lName email')
-//       .populate('contractId', 'title price');
-
-//     res.status(201).json(result);
-//   } catch (error) {
-//     console.error("Negotiation error:", error);
-//     res.status(500).json({ message: "Failed to create negotiation" });
-//   }
-// });
-
-// app.get("/api/negotiations", authenticate, requireRole('buyer'), async (req, res) => {
-//   console.log("check")
-//   try {
-//     const negotiations = await Negotiation.find({ buyerId: req.user._id })
-//       .populate('contractId', 'title price')
-//       .populate('farmer', 'fName lName')
-//       .sort({ createdAt: -1 });
-//       console.log(negotiations)
-//     res.json(negotiations);
-//   } catch (error) {
-//     res.status(500).json({ message: "Failed to fetch negotiations" });
-//   }
-// });
-
-// app.get("/api/negotiations", authenticate, async (req, res) => {
-//   console.log("check")
-//   try {
-//     let query = {};
-    
-//     if (req.userType === 'farmer') {
-//       query = { farmer: req.userId };
-//     } else if (req.userType === 'buyer') {
-//       query = { buyerId: req.userId };
-//     }
-
-//     const negotiations = await Negotiation.find(query)
-//       .populate('buyerId', 'fName lName email')
-//       .populate('farmer', 'fName lName email')
-//       .populate('contractId', 'title price')
-//       .sort({ createdAt: -1 });
-
-//     res.json(negotiations);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Failed to fetch negotiations' });
-//   }
-// });
-
-// app.get("/api/negotiationDetails/:id", authenticate, async (req, res) => {
-//   try {
-//     const negotiation = await Negotiation.findById(req.params.id)
-//       .populate('buyerId', 'fName lName email phone')
-//       .populate('farmer', 'fName lName email phone')
-//       .populate('contractId', 'title price description image');
-
-//     if (!negotiation) {
-//       return res.status(404).json({ message: "Negotiation not found" });
-//     }
-
-//     if (negotiation.farmer._id.toString() !== req.userId && 
-//         negotiation.buyerId._id.toString() !== req.userId) {
-//       return res.status(403).json({ message: "Access denied" });
-//     }
-
-//     res.json(negotiation);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// });
-
-// app.put("/api/negotiations/:id/status", authenticate, async (req, res) => {
-//   try {
-//     const { status } = req.body;
-//     const negotiation = await Negotiation.findById(req.params.id);
-
-//     if (!negotiation) {
-//       return res.status(404).json({ message: "Negotiation not found" });
-//     }
-
-//     if (negotiation.farmer.toString() !== req.userId) {
-//       return res.status(403).json({ message: "Only farmer can update status" });
-//     }
-
-//     negotiation.status = status;
-//     await negotiation.save();
-
-//     res.json(negotiation);
-//   } catch (error) {
-//     res.status(500).json({ message: "Failed to update negotiation" });
-//   }
-// });
-
 
 // Remove duplicate GET endpoint and keep this one:
 app.get("/api/negotiations", authenticate, async (req, res) => {
@@ -1672,32 +1595,99 @@ app.post("/api/buyer/negotiations", authenticate, requireRole('buyer'), async (r
     res.status(500).json({ message: "Failed to create negotiation" });
   }
 });
-// FIXED status update endpoint
-app.put("/api/negotiations/:id/:action", authenticate, async (req, res) => {
+
+// Update negotiation status endpoint to handle all actions properly
+app.put("/api/negotiations/:id/status", authenticate, async (req, res) => {
   try {
-    const { id, action } = req.params;
-    const validActions = ['accept', 'reject']; // REMOVED 'counter' since not in enum
-    
-    if (!validActions.includes(action)) {
-      return res.status(400).json({ message: "Invalid action" });
-    }
-    
-    const negotiation = await Negotiation.findById(id);
+    const { status } = req.body;
+    const negotiation = await Negotiation.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    ).populate('contractId').populate('farmer');
+
     if (!negotiation) {
       return res.status(404).json({ message: "Negotiation not found" });
     }
-    
-    // Update status with LOWERCASE values
-    negotiation.status = action === 'accept' ? 'accepted' : 'rejected';
-    
-    await negotiation.save();
-    res.json(negotiation);
+
+    let contractStatus;
+    switch (status) {
+      case 'accepted':
+        contractStatus = 'Ongoing';
+        break;
+      case 'rejected':
+        contractStatus = 'Active';
+        break;
+      case 'finalized':
+        contractStatus = 'Completed';
+        break;
+      case 'cancelled':
+        contractStatus = 'Cancelled';
+        // Delete the negotiation when cancelled
+        await Negotiation.findByIdAndDelete(negotiation._id);
+        break;
+      default:
+        contractStatus = negotiation.contractId.status;
+    }
+
+    // Update contract status
+    await Contract.findByIdAndUpdate(
+      negotiation.contractId._id,
+      { status: contractStatus }
+    );
+
+    // Create deal when accepted or finalized
+    if (status === 'accepted' || status === 'finalized') {
+      const dealStatus = status === 'accepted' ? 'Ongoing' : 'Completed';
+      
+      const newDeal = new Deal({
+        contractId: negotiation.contractId._id,
+        farmer: negotiation.farmer._id,
+        buyer: negotiation.buyerId,
+        finalizedPrice: negotiation.proposedPrice,
+        finalizedAt: new Date(),
+        status: dealStatus
+      });
+      
+      await newDeal.save();
+    }
+
+    if (status === 'cancelled') {
+      res.json({ message: "Negotiation cancelled and removed" });
+    } else {
+      res.json(negotiation);
+    }
   } catch (error) {
-    console.error("Negotiation update error:", error);
-    res.status(500).json({ message: "Failed to update negotiation" });
+    console.error("Error updating negotiation status:", error);
+    res.status(500).json({ message: "Failed to update negotiation status" });
   }
 });
 
+// Update farmers endpoint to include profile data
+app.get("/api/users/farmers", authenticate, async (req, res) => {
+  try {
+    const farmers = await User.find({ role: 'farmer' })
+      .populate('profile', 'name surname image phone pincode')
+      .select('fName lName email profile');
+    
+    const enhancedFarmers = farmers.map(farmer => {
+      const profile = farmer.profile || {};
+      return {
+        _id: farmer._id,
+        name: `${farmer.fName} ${farmer.lName}`,
+        email: farmer.email,
+        location: profile.pincode || 'India',
+        image: profile.image || `https://ui-avatars.com/api/?name=${farmer.fName}+${farmer.lName}&background=random`,
+        phone: profile.phone || 'Not provided',
+        farmSize: profile.farmSize || 'Not specified'
+      };
+    });
+
+    res.json(enhancedFarmers);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch farmers" });
+  }
+});
 
 // ==================== FARMER FETCH ENDPOINT ====================
 app.get("/api/users/farmers", authenticate, async (req, res) => {

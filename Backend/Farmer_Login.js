@@ -695,20 +695,11 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const router = express.Router();
 
-<<<<<<< HEAD
-// Add this before your routes
-app.options('*', cors());
 
 // ==================== INCREASED PAYLOAD LIMIT ====================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-=======
-// ==================== INCREASED PAYLOAD LIMIT ====================
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
->>>>>>> newtest
 // ==================== CORS CONFIGURATION ====================
 const allowedOrigins = [
   'https://contractfarming0.netlify.app',

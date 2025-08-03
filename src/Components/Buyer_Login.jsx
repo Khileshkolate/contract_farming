@@ -317,14 +317,11 @@ const Buyer_Login = () => {
 
     const endpoint = isSignUp ? `${link}/api/signup` : `${link}/api/login`;
     
-<<<<<<< HEAD
-=======
     // Add role to payload
     const payload = { ...formData };
     if (isSignUp) {
       payload.role = "buyer";
     }
->>>>>>> newtest
 
     try {
       const response = await fetch(endpoint, {

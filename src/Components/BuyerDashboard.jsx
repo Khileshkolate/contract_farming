@@ -1044,6 +1044,24 @@ const BuyerDashboard = () => {
   const [proposedPrice, setProposedPrice] = useState('');
   const [negotiations, setNegotiations] = useState([]);
   const [negotiationRequests, setNegotiationRequests] = useState([]);
+  const [ongoingDeals, setOngoingDeals] = useState([]);
+
+
+ 
+
+ const viewDealDetails = (deal) => {
+  const farmerName = deal.farmer 
+    ? `${deal.farmer.fName} ${deal.farmer.lName}` 
+    : 'Unknown Farmer';
+  const contractTitle = deal.contractId?.title || 'Contract';
+  alert(`Viewing deal details:\n\nContract: ${contractTitle}\nFarmer: ${farmerName}\nProposed Price: ₹${deal.proposedPrice}\nStatus: ${deal.status}`);
+};
+
+  // Helper function to get farmer name
+  const getFarmerName = (farmer) => {
+    if (!farmer) return 'Unknown';
+    return `${farmer.fName || ''} ${farmer.lName || ''}`.trim() || 'Unknown Farmer';
+  };
 
   const fetchWithAuth = async (url, options = {}) => {
     const token = localStorage.getItem('buyerToken');
@@ -1148,7 +1166,7 @@ const BuyerDashboard = () => {
         ...prev,
         {
           ...response,
-          farmerName: selectedContract.farmer?.name || 'Unknown',
+          farmerName: getFarmerName(selectedContract.farmer),
           product: selectedContract.title
         }
       ]);
@@ -1198,7 +1216,7 @@ const BuyerDashboard = () => {
 
   const viewAllDetails = () => {
     if (selectedContract) {
-      alert(`Viewing all details for contract: ${selectedContract.title}\nFarmer: ${selectedContract.farmer?.name || 'N/A'}\nPrice: ₹${selectedContract.price}\nQuantity: ${selectedContract.quantity}`);
+      alert(`Viewing all details for contract: ${selectedContract.title}\nFarmer: ${getFarmerName(selectedContract.farmer)}\nPrice: ₹${selectedContract.price}\nQuantity: ${selectedContract.quantity}`);
     }
   };
 
@@ -1213,10 +1231,75 @@ const BuyerDashboard = () => {
       await fetchProfile();
       await fetchFarmers();
       await fetchNegotiations();
+     
       setIsLoading(false);
     };
     checkAuthAndFetch();
   }, []);
+
+  {activeTab === 'ongoingDeals' && (
+  <div className="bg-white rounded-lg shadow-md p-6">
+    <h2 className="text-xl font-bold text-gray-800 mb-6">Your Ongoing Deals</h2>
+    
+    {negotiationRequests.filter(n => n.status === 'accepted').length === 0 ? (
+      <div className="text-center py-10">
+        <ClipboardDocumentCheckIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-700">No ongoing deals</h3>
+        <p className="text-gray-500 mt-2">Accepted negotiations will appear here</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {negotiationRequests
+          .filter(n => n.status === 'accepted')
+          .map(deal => {
+            const farmerName = deal.farmer 
+              ? `${deal.farmer.fName} ${deal.farmer.lName}` 
+              : 'Unknown Farmer';
+            const contractTitle = deal.contractId?.title || 'Contract';
+            return (
+              <div key={deal._id} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="font-bold text-lg text-gray-800">
+                      {contractTitle}
+                    </h3>
+                    <p className="text-gray-600">
+                      With {farmerName}
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    Active
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Finalized Price</p>
+                    <p className="font-semibold text-lg">
+                      ₹{deal.proposedPrice?.toLocaleString() || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Agreed On</p>
+                    <p className="font-semibold">
+                      {new Date(deal.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => viewDealDetails(deal)}
+                  className="mt-4 w-full py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition"
+                >
+                  View Details
+                </button>
+              </div>
+            );
+          })}
+      </div>
+    )}
+  </div>
+)}
 
   const ImageScanner = () => (
     <div className="p-6 text-center">
@@ -1255,12 +1338,12 @@ const BuyerDashboard = () => {
     </div>
   );
 
-  const DashboardStats = () => (
+ const DashboardStats = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {[
         { title: "Active Contracts", value: contracts.length },
         { title: "Cart Items", value: cartItems.length },
-        { title: "Negotiations", value: negotiations.length }
+        { title: "Farmers", value: farmers.length } // CHANGED: Negotiations to Farmers
       ].map((stat, idx) => (
         <div key={idx} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
           <div className="flex justify-between items-center">
@@ -1274,6 +1357,7 @@ const BuyerDashboard = () => {
       ))}
     </div>
   );
+
 
   const RecentContractsTable = () => (
     <div className="bg-white rounded-lg p-6 shadow-md">
@@ -1309,7 +1393,7 @@ const BuyerDashboard = () => {
                       alt="Farmer"
                       onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/E0F2F7/000000?text=F' }}
                     />
-                    <span>{contract.farmer?.name || 'N/A'}</span>
+                    <span>{getFarmerName(contract.farmer)}</span>
                   </div>
                 </td>
                 <td className="py-4 px-4">{contract.title || 'N/A'}</td>
@@ -1340,19 +1424,28 @@ const BuyerDashboard = () => {
     </div>
   );
 
-  const NegotiationRequests = () => (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-6">Negotiation Requests</h2>
-      
-      {negotiationRequests.length === 0 ? (
-        <div className="text-center py-10">
-          <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-700">No negotiation requests</h3>
-          <p className="text-gray-500 mt-2">Farmers will appear here when they send negotiation requests</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {negotiationRequests.map(request => (
+  // Update NegotiationRequests component to show proper data
+const NegotiationRequests = () => (
+  <div className="bg-white rounded-lg shadow-md p-6">
+    <h2 className="text-xl font-bold text-gray-800 mb-6">Negotiation Requests</h2>
+    
+    {negotiationRequests.length === 0 ? (
+      <div className="text-center py-10">
+        <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-700">No negotiation requests</h3>
+        <p className="text-gray-500 mt-2">Farmers will appear here when they send negotiation requests</p>
+      </div>
+    ) : (
+      <div className="space-y-4">
+        {negotiationRequests.map(request => {
+          const farmerName = request.farmer 
+            ? `${request.farmer.fName} ${request.farmer.lName}` 
+            : 'Unknown Farmer';
+            
+          const contractTitle = request.contractId?.title || 'Contract';
+          const originalPrice = request.contractId?.price || 0;
+          
+          return (
             <div key={request._id} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
@@ -1360,8 +1453,8 @@ const BuyerDashboard = () => {
                     <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-800">{request.farmerName || 'Unknown Farmer'}</h3>
-                    <p className="text-gray-600 text-sm">{request.product || 'Product'}</p>
+                    <h3 className="font-medium text-gray-800">{farmerName}</h3>
+                    <p className="text-gray-600 text-sm">{contractTitle}</p>
                   </div>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -1374,22 +1467,25 @@ const BuyerDashboard = () => {
               </div>
               
               <div className="mt-4">
-                <p className="text-gray-700">{request.message}</p>
-                <p className="text-gray-700 mt-2">
-                  <strong>Proposed Price:</strong> ₹{request.proposedPrice?.toLocaleString() || 'N/A'}
-                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Original Price</p>
+                    <p className="font-medium">₹{originalPrice.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Proposed Price</p>
+                    <p className="font-medium">₹{request.proposedPrice?.toLocaleString() || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <p className="mt-3 text-gray-700">{request.message}</p>
+                
                 <div className="flex justify-between items-center mt-4">
                   <span className="text-xs text-gray-500">
                     {new Date(request.createdAt).toLocaleDateString()}
                   </span>
                   {request.status === 'pending' && (
                     <div className="flex gap-2">
-                      <button 
-                        onClick={() => handleNegotiationAction(request._id, 'accept')}
-                        className="px-3 py-1 bg-green-100 text-green-800 rounded-md text-sm hover:bg-green-200 transition-colors"
-                      >
-                        Accept
-                      </button>
                       <button 
                         onClick={() => handleNegotiationAction(request._id, 'counter')}
                         className="px-3 py-1 bg-gray-100 text-gray-800 rounded-md text-sm hover:bg-gray-200 transition-colors"
@@ -1407,11 +1503,12 @@ const BuyerDashboard = () => {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+          );
+        })}
+      </div>
+    )}
+  </div>
+);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-inter">
@@ -1638,7 +1735,7 @@ const BuyerDashboard = () => {
                       />
                       <h3 className="text-lg font-bold text-gray-800">{contract.title || 'N/A'}</h3>
                       <div className="mt-4 space-y-2 text-sm text-gray-600">
-                        <p><strong>Farmer:</strong> {contract.farmer?.name || 'N/A'}</p>
+                        <p><strong>Farmer:</strong> {getFarmerName(contract.farmer)}</p>
                         <p><strong>Quantity:</strong> {contract.quantity || 'N/A'}</p>
                         <p><strong>Price:</strong> ₹{(contract.price || 0).toLocaleString()}</p>
                         <p><strong>Status:</strong> <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -1690,7 +1787,7 @@ const BuyerDashboard = () => {
                             </span>
                           </div>
                           <div className="mt-3 text-sm text-gray-600">
-                            <p><strong>Farmer:</strong> {deal.farmer?.name || 'Unknown'}</p>
+                            <p><strong>Farmer:</strong> {getFarmerName(deal.farmer)}</p>
                             <p><strong>Quantity:</strong> {deal.quantity}</p>
                             <p><strong>Price:</strong> ₹{deal.price.toLocaleString()}</p>
                           </div>
@@ -1713,96 +1810,74 @@ const BuyerDashboard = () => {
                 </div>
               )}
 
-              {activeTab === 'farmers' && (
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <div className="p-6 bg-gradient-to-r from-green-50 to-blue-50">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-1">Registered Farmers</h2>
-                    <p className="text-gray-600 mb-6">Connect with farmers across India</p>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        placeholder="Search farmers..." 
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      />
-                      <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                        Search
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {farmers.length > 0 ? farmers.map(farmer => (
-                        <div key={farmer._id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 group">
-                          <div className="flex items-center gap-4 mb-4">
-                            <div className="relative">
-                              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 flex items-center justify-center overflow-hidden">
-                                {farmer.image ? (
-                                  <img 
-                                    src={farmer.image} 
-                                    className="w-full h-full object-cover"
-                                    alt="Farmer"
-                                    onError={(e) => e.target.src = `https://ui-avatars.com/api/?name=${farmer.fName}+${farmer.lName}&background=random`}
-                                  />
-                                ) : (
-                                  <span className="text-gray-500 text-xl font-bold">
-                                    {farmer.fName?.charAt(0) || 'F'}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="absolute -bottom-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                ★ 4.8
-                              </div>
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-                                {farmer.fName || 'Unknown'} {farmer.lName || 'Farmer'}
-                              </h3>
-                              <p className="text-gray-600 text-sm">{farmer.location || 'India'}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-3 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
-                              <span>Certified Organic Farmer</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                              </svg>
-                              <span>{farmer.location || 'Punjab, India'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v8a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z" />
-                              </svg>
-                              <span>12 Active Contracts</span>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-6 flex gap-3">
-                            <button className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium">
-                              Contact
-                            </button>
-                            <button className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium">
-                              View Products
-                            </button>
-                          </div>
-                        </div>
-                      )) : (
-                        <div className="col-span-full text-center py-12">
-                          <UsersIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                          <h3 className="text-xl font-medium text-gray-700">No farmers found</h3>
-                          <p className="text-gray-500 mt-2">Farmers will appear when they register</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+              
+{activeTab === 'farmers' && (
+  <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="p-6 bg-gradient-to-r from-green-50 to-blue-50">
+      <h2 className="text-2xl font-bold text-gray-800 mb-1">Registered Farmers</h2>
+      <p className="text-gray-600 mb-6">Connect with farmers across India</p>
+    </div>
+    
+    <div className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {farmers.length > 0 ? farmers.map(farmer => (
+          <div key={farmer._id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 group">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative">
+                <img 
+                  src={farmer.image}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-green-500"
+                  alt="Farmer"
+                  onError={(e) => e.target.src = `https://ui-avatars.com/api/?name=${farmer.name}&background=random`}
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                  {farmer.name}
+                </h3>
+                <p className="text-gray-600 text-sm">{farmer.location}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>{farmer.phone}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                <span>{farmer.location}</span>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex gap-3">
+              <button className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium">
+                Contact
+              </button>
+              <button 
+                onClick={() => setActiveTab('contracts')}
+                className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+              >
+                View Contracts
+              </button>
+            </div>
+          </div>
+        )) : (
+          <div className="col-span-full text-center py-12">
+            <UsersIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-gray-700">No farmers found</h3>
+            <p className="text-gray-500 mt-2">Farmers will appear when they register</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
 
               {activeTab === 'negotiations' && (
                 <NegotiationRequests />
@@ -1954,7 +2029,7 @@ const BuyerDashboard = () => {
                 <h2 className="text-2xl font-bold text-gray-800">{selectedContract.title || 'N/A'}</h2>
                 <p className="text-gray-600">{selectedContract.description || 'No description available.'}</p>
                 <div className="space-y-2 text-sm">
-                  <p><strong>Farmer:</strong> {selectedContract.farmer?.name || 'N/A'}</p>
+                  <p><strong>Farmer:</strong> {getFarmerName(selectedContract.farmer)}</p>
                   <p><strong>Location:</strong> {selectedContract.location || 'N/A'}</p>
                   <p><strong>Price:</strong> ₹{(selectedContract.price || 0).toLocaleString()}</p>
                   <p><strong>Status:</strong> <span className={`px-2 py-1 rounded-full text-xs font-medium ${

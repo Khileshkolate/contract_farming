@@ -49,6 +49,7 @@ function App() {
           <Route path="/ContractCard" element={<ContractCard />} />
          <Route path="/NegotiationDetails/:id" element={<NegotiationDetails />} />
          <Route path="/negotiation-details" element={<ContractNegotiationPage />} />
+         {/* <Route path="/negotiation/:id" element={<ContractNegotiationPage />} /> */}
          <Route path="/Header" element={<Header />} />
          <Route path="/Footer" element={<Footer />} />
          <Route path="/NotificationsPage" element={<NotificationsPage />} />

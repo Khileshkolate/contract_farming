@@ -701,7 +701,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // ==================== CORS CONFIGURATION ====================
 const allowedOrigins = [
-  'https://contractfarming0.netlify.app',
+  'https://digitalkrishii.tech',
   'http://localhost:5173'
 ];
 
